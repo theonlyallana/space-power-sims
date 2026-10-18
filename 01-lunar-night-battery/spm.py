@@ -46,6 +46,8 @@ class Trajectory:
     energy_Wh: float
     negative_average_mol_m3: float
     positive_average_mol_m3: float
+    negative_surface_mol_m3: np.ndarray
+    positive_surface_mol_m3: np.ndarray
     plated_mol: float
     message: str
 
@@ -211,6 +213,7 @@ def simulate(
     negative_concentration: float,
     positive_concentration: float,
     duration_s: float | None = None,
+    max_step_s: float = 5.0,
 ) -> Trajectory:
     """Constant-current run until a voltage limit or ``duration_s``.
 
@@ -319,16 +322,41 @@ def simulate(
         rtol=cell.relative_tolerance,
         atol=cell.absolute_tolerance,
         events=[hit_lower, hit_upper],
-        max_step=30.0,
+        max_step=max_step_s,
+        dense_output=True,
     )
+
+    # A step the solver accepts can still hide a steep cut-off. On a cold
+    # discharge the positive surface fills and the exchange current collapses
+    # inside one step, so the stored ends are 2.75 V and then 2.50 V. The
+    # dense output of that step is the curve in between. Fill any gap larger
+    # than 40 mV so the plot does not draw a chord through voltages the cell
+    # did not hold.
+    samples = [solution.y[:, 0]]
+    times = [float(solution.t[0])]
+    for index in range(1, solution.y.shape[1]):
+        previous = samples[-1]
+        current = solution.y[:, index]
+        v_previous, *_rest = split(previous[:count], previous[count : 2 * count])
+        v_current, *_rest = split(current[:count], current[count : 2 * count])
+        if abs(v_current - v_previous) > 0.04 and solution.t[index] > solution.t[index - 1]:
+            for extra in np.linspace(solution.t[index - 1], solution.t[index], 9)[1:-1]:
+                times.append(float(extra))
+                samples.append(solution.sol(extra))
+        times.append(float(solution.t[index]))
+        samples.append(current)
 
     voltages = []
     anode_potentials = []
-    for state in solution.y.T:
+    surface_negative = []
+    surface_positive = []
+    for state in samples:
         voltage, phi_n, _intercalation, _plated = split(state[:count], state[count : 2 * count])
         voltages.append(voltage)
         anode_potentials.append(phi_n)
-    time_s = solution.t
+        surface_negative.append(float(state[count - 1]))
+        surface_positive.append(float(state[2 * count - 1]))
+    time_s = np.asarray(times, dtype=float)
     voltage_V = np.asarray(voltages, dtype=float)
     plated_mol_series = solution.y[-1]
     plated_Ah = plated_mol_series * FARADAY / 3600.0
@@ -345,6 +373,8 @@ def simulate(
         energy_Wh=energy_Wh,
         negative_average_mol_m3=_volume_average(final[:count], negative_shells),
         positive_average_mol_m3=_volume_average(final[count : 2 * count], positive_shells),
+        negative_surface_mol_m3=np.asarray(surface_negative, dtype=float),
+        positive_surface_mol_m3=np.asarray(surface_positive, dtype=float),
         plated_mol=float(final[-1]),
         message=solution.message,
     )

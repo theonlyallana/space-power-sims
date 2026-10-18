@@ -125,7 +125,7 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
         axis.legend(frameon=False)
         axis.set_ylim(bottom=0.0)
     axes[0].set_ylabel("Plated lithium at 4.2 V (mAh)")
-    figure.suptitle("Colder charging deposits more lithium as metal", fontsize=14)
+    figure.suptitle("Below 0 °C, charging starts to plate lithium", fontsize=14)
     reserve_footer(figure)
     save_figure(figure, out / "A_plated_lithium.png")
     return {

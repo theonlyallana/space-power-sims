@@ -1,139 +1,139 @@
 {
   "A": {
-    "empty_negative_mol_m3": 1082.385964893768,
-    "empty_positive_mol_m3": 53622.97308436348,
+    "empty_negative_mol_m3": 1082.3859648989235,
+    "empty_positive_mol_m3": 53622.973084357145,
     "ours": [
       {
         "rate": 0.5,
         "temperature_C": -20.0,
-        "plated_mAh": 125.07647901396265,
-        "throughput_Ah": 2.134705050407067,
+        "plated_mAh": 125.07550214526323,
+        "throughput_Ah": 2.134705000819802,
         "anode_min_V": 0.0
       },
       {
         "rate": 0.5,
         "temperature_C": -10.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 2.850195801540164,
-        "anode_min_V": 0.009417309781549907
+        "throughput_Ah": 2.850195760847189,
+        "anode_min_V": 0.009417310778945814
       },
       {
         "rate": 0.5,
         "temperature_C": 0.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 3.31636675615002,
-        "anode_min_V": 0.002873263365974195
+        "throughput_Ah": 3.316366746998292,
+        "anode_min_V": 0.0028732641638876824
       },
       {
         "rate": 0.5,
         "temperature_C": 10.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 3.7180146310175766,
-        "anode_min_V": 0.012111183061755985
+        "throughput_Ah": 3.7180140209025456,
+        "anode_min_V": 0.012111189655550823
       },
       {
         "rate": 0.5,
         "temperature_C": 25.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 4.436043682786143,
-        "anode_min_V": 0.03427967508731416
+        "throughput_Ah": 4.436043684360681,
+        "anode_min_V": 0.03427967506686988
       },
       {
         "rate": 1.0,
         "temperature_C": -20.0,
-        "plated_mAh": 33.02442224469728,
-        "throughput_Ah": 0.9229387032764745,
+        "plated_mAh": 33.02111442040713,
+        "throughput_Ah": 0.9229358589861667,
         "anode_min_V": 0.0
       },
       {
         "rate": 1.0,
         "temperature_C": -10.0,
-        "plated_mAh": 75.05745594752736,
-        "throughput_Ah": 1.591639338932892,
+        "plated_mAh": 75.06006608720827,
+        "throughput_Ah": 1.591638460178685,
         "anode_min_V": 0.0
       },
       {
         "rate": 1.0,
         "temperature_C": 0.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 2.2844618080172254,
-        "anode_min_V": 0.002598089567823691
+        "throughput_Ah": 2.2844610899226008,
+        "anode_min_V": 0.0025980899129143943
       },
       {
         "rate": 1.0,
         "temperature_C": 10.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 2.9502138244081624,
-        "anode_min_V": 0.02003750316623488
+        "throughput_Ah": 2.950213614108975,
+        "anode_min_V": 0.020037510410245863
       },
       {
         "rate": 1.0,
         "temperature_C": 25.0,
         "plated_mAh": 0.0,
-        "throughput_Ah": 3.5137778907892954,
-        "anode_min_V": 0.014285499913794143
+        "throughput_Ah": 3.5137779587392615,
+        "anode_min_V": 0.01428549795243264
       }
     ],
     "pybamm": [
       {
         "rate": 0.5,
         "temperature_C": -20.0,
-        "plated_mAh": 128.539504425523,
-        "throughput_Ah": 2.0850221793015975
+        "plated_mAh": 128.53950437556998,
+        "throughput_Ah": 2.085022178737993
       },
       {
         "rate": 0.5,
         "temperature_C": -10.0,
-        "plated_mAh": 120.7388471411553,
-        "throughput_Ah": 2.7870983000026692
+        "plated_mAh": 120.73884710180499,
+        "throughput_Ah": 2.7870982995020674
       },
       {
         "rate": 0.5,
         "temperature_C": 0.0,
-        "plated_mAh": 98.66188392886679,
-        "throughput_Ah": 3.3405977999490304
+        "plated_mAh": 98.67455193181732,
+        "throughput_Ah": 3.340590958258171
       },
       {
         "rate": 0.5,
         "temperature_C": 10.0,
-        "plated_mAh": 77.08497770102987,
-        "throughput_Ah": 3.726880806390034
+        "plated_mAh": 77.08491353095663,
+        "throughput_Ah": 3.726880288033861
       },
       {
         "rate": 0.5,
         "temperature_C": 25.0,
-        "plated_mAh": 67.41172701200185,
-        "throughput_Ah": 4.3823159707032655
+        "plated_mAh": 67.41931871534058,
+        "throughput_Ah": 4.38193767791251
       },
       {
         "rate": 1.0,
         "temperature_C": -20.0,
-        "plated_mAh": 78.16204659776946,
-        "throughput_Ah": 0.7865673989461283
+        "plated_mAh": 78.14881527666331,
+        "throughput_Ah": 0.7865432954941115
       },
       {
         "rate": 1.0,
         "temperature_C": -10.0,
-        "plated_mAh": 60.04242884072383,
-        "throughput_Ah": 1.4271487230510556
+        "plated_mAh": 60.042406165170554,
+        "throughput_Ah": 1.4271484192477812
       },
       {
         "rate": 1.0,
         "temperature_C": 0.0,
-        "plated_mAh": 52.87887555933369,
-        "throughput_Ah": 2.1569734655686577
+        "plated_mAh": 52.87755683666061,
+        "throughput_Ah": 2.1569623485212475
       },
       {
         "rate": 1.0,
         "temperature_C": 10.0,
-        "plated_mAh": 49.266084450211146,
-        "throughput_Ah": 2.795962752709257
+        "plated_mAh": 49.26570114700719,
+        "throughput_Ah": 2.796019276324848
       },
       {
         "rate": 1.0,
         "temperature_C": 25.0,
-        "plated_mAh": 36.79386978674902,
-        "throughput_Ah": 3.489407524198555
+        "plated_mAh": 36.79405454805658,
+        "throughput_Ah": 3.4894205466093076
       }
     ]
   },
@@ -141,18 +141,18 @@
     "ours": [
       {
         "temperature_C": 25.0,
-        "energy_Wh": 17.29908186823125,
-        "capacity_Ah": 4.938853336012564
+        "energy_Wh": 17.299517309904623,
+        "capacity_Ah": 4.938853313806087
       },
       {
         "temperature_C": 0.0,
-        "energy_Wh": 15.475833598759996,
-        "capacity_Ah": 4.657172831576705
+        "energy_Wh": 15.476051285921951,
+        "capacity_Ah": 4.6571728190215795
       },
       {
         "temperature_C": -20.0,
-        "energy_Wh": 11.627452760197734,
-        "capacity_Ah": 3.7529086992844927
+        "energy_Wh": 10.215368632424127,
+        "capacity_Ah": 3.212206605991741
       }
     ],
     "pybamm": [
@@ -172,7 +172,7 @@
         "capacity_Ah": 1.0735201020635983
       }
     ],
-    "relative_drop": 0.10539566685440942,
+    "relative_drop": 0.10540560128453232,
     "pybamm_relative_drop": 0.11373196757212899,
     "ingenuity_relative_drop": 0.12612612612612617
   },

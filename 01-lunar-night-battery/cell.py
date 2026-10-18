@@ -152,7 +152,7 @@ class Cell:
         is empty or full, which is why the overpotential has to grow at the
         end of a charge: there is nowhere left to put the ion.
         """
-        c_s = float(np.clip(surface_concentration, 1.0, self.cmax_negative - 1.0))
+        c_s = _surface_for_exchange(surface_concentration, self.cmax_negative)
         return (
             self.exchange_reference_negative
             * self.arrhenius(self.activation_kinetics_negative, temperature_K)
@@ -160,7 +160,7 @@ class Cell:
         )
 
     def exchange_current_positive(self, surface_concentration: float, temperature_K: float) -> float:
-        c_s = float(np.clip(surface_concentration, 1.0, self.cmax_positive - 1.0))
+        c_s = _surface_for_exchange(surface_concentration, self.cmax_positive)
         return (
             self.exchange_reference_positive
             * self.arrhenius(self.activation_kinetics_positive, temperature_K)
@@ -198,6 +198,20 @@ class Cell:
     def electrode_moles(self, concentration: float, active_fraction: float, thickness_m: float) -> float:
         """Lithium inventory in one electrode, moles, at a uniform concentration."""
         return float(concentration * active_fraction * thickness_m * self.area_m2)
+
+
+def _surface_for_exchange(surface_concentration: float, maximum: float) -> float:
+    """Keep the exchange-current square root defined without freezing it.
+
+    A floor one mol/m³ short of full holds the exchange current constant while
+    the outer shell is still filling. On a cold discharge that draws a step
+    down to that frozen overpotential, then a plateau, instead of letting the
+    voltage fall through the cut-off as the surface fills. The floor here is
+    a tiny fraction of the maximum, small enough that the cut-off arrives
+    while the kinetics are still moving.
+    """
+    floor = 1e-10 * maximum
+    return float(np.clip(surface_concentration, floor, maximum - floor))
 
 
 def _float(book: dict[str, Entry], name: str) -> float:

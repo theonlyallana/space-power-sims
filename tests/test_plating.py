@@ -129,3 +129,28 @@ def test_cold_discharge_returns_less_energy_than_a_warm_one(cell):
     )
     assert warm.energy_Wh > cold.energy_Wh > colder.energy_Wh
     assert warm.energy_Wh > 10.0
+
+
+def test_cold_discharge_does_not_park_on_a_frozen_exchange_current(cell):
+    """A floor 1 mol/m³ short of full used to freeze the positive exchange current.
+
+    The voltage then sat near 2.66 V while the outer shell kept filling, which
+    drew a step and a plateau in the middle of the −20 °C curve. The discharge
+    now falls through the 2.5 V cut-off once that surface fills, over a few
+    hundredths of an ampere-hour, and it does not stay there.
+    """
+    result = simulate(
+        cell,
+        celsius_to_kelvin(-20.0),
+        1.0,
+        "discharge",
+        cell.initial_negative,
+        cell.initial_positive,
+    )
+    assert result.voltage_V[-1] == pytest.approx(cell.voltage_min_V, abs=0.02)
+    below = result.voltage_V < 2.70
+    assert np.any(below)
+    span_Ah = float(result.throughput_Ah[below][-1] - result.throughput_Ah[below][0])
+    assert span_Ah < 0.05
+    # Interior samples. The cut-off itself is allowed to be steep.
+    assert float(np.diff(result.voltage_V[:-1]).min()) > -0.12

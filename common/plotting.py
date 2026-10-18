@@ -14,6 +14,7 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 # Okabe-Ito, in an order that reads well as warm versus cold.
 COLOURS = {
@@ -60,18 +61,22 @@ FIGURE_DPI = 140
 
 
 def reserve_footer(figure: plt.Figure) -> None:
-    """Keep the disclaimer below the x-axis titles.
+    """Keep the disclaimer in a band under the axes.
 
-    A footer drawn at the bottom of the axes, then saved with a tight bounding
-    box, sits on the axis title. The layout rect stops short of the bottom
-    edge and the disclaimer occupies that strip.
+    Constrained layout's rectangle is (left, bottom, width, height), not
+    (left, bottom, right, top). A height of 1 with the bottom raised pushes
+    the titles off the top of the canvas. This rectangle runs from y = 0.055
+    to y = 1, and the disclaimer sits in the strip below that.
     """
     engine = figure.get_layout_engine()
     if engine is not None and hasattr(engine, "set"):
-        engine.set(rect=(0.0, 0.11, 1.0, 1.0))
+        # (left, bottom, width, height). The top stays at 1 so titles are
+        # not pushed off the canvas. The bottom band is the disclaimer.
+        # A slightly larger h_pad keeps the suptitle off the figure edge.
+        engine.set(rect=(0.0, 0.055, 1.0, 0.945), h_pad=0.12)
     figure.text(
         0.5,
-        0.025,
+        0.02,
         DISCLAIMER,
         ha="center",
         va="bottom",
@@ -80,11 +85,78 @@ def reserve_footer(figure: plt.Figure) -> None:
     )
 
 
+def texts_outside_figure(figure: plt.Figure, tolerance_px: float = 1.0) -> list[str]:
+    """Text whose window extent crosses the canvas edge.
+
+    Tick labels, titles, legends and the footer are all Text artists. A
+    layout that shoves a title off the top of the figure fails this check.
+    """
+    figure.canvas.draw()
+    renderer = figure.canvas.get_renderer()
+    width, height = figure.canvas.get_width_height()
+    outside = []
+    for artist in figure.findobj(match=lambda item: isinstance(item, matplotlib.text.Text)):
+        if not artist.get_visible():
+            continue
+        content = artist.get_text().strip()
+        if not content:
+            continue
+        boxes = [artist.get_window_extent(renderer=renderer)]
+        patch = artist.get_bbox_patch()
+        if patch is not None:
+            boxes.append(patch.get_window_extent(renderer=renderer))
+        for box in boxes:
+            if (
+                box.x0 < -tolerance_px
+                or box.y0 < -tolerance_px
+                or box.x1 > width + tolerance_px
+                or box.y1 > height + tolerance_px
+            ):
+                outside.append(content.replace("\n", " ")[:80])
+                break
+    return outside
+
+
+def keep_tick_labels_inside(figure: plt.Figure) -> None:
+    """Drop major ticks that sit outside the view.
+
+    The locator happily returns a tick past the data limit. That label is
+    drawn unclipped, so it walks off the canvas (a −30 °C tick beside data
+    that starts at −20 °C, a 4.2 V tick above a 4.1 V axis). Ticks inside
+    the view stay on the automatic formatter.
+    """
+    for axis in figure.axes:
+        for dimension in (axis.xaxis, axis.yaxis):
+            lo, hi = dimension.get_view_interval()
+            if lo > hi:
+                lo, hi = hi, lo
+            span = hi - lo
+            if not (span > 0) or not (span < float("inf")):
+                continue
+            locator = dimension.get_major_locator()
+            try:
+                values = [float(value) for value in locator.tick_values(lo, hi)]
+            except Exception:
+                continue
+            epsilon = span * 1e-6
+            inside = [value for value in values if lo - epsilon <= value <= hi + epsilon]
+            if len(inside) < 2 or len(inside) == len(values):
+                continue
+            dimension.set_major_locator(ticker.FixedLocator(inside))
+
+
 def save_figure(figure: plt.Figure, path: Path) -> None:
-    """Write a PNG. Charts are produced only by this function, never edited."""
+    """Write a PNG. Charts are produced only by this function, never edited.
+
+    The canvas is saved whole. A tight bounding box would crop the footer
+    band back onto the axis titles, which is how the disclaimer ended up on
+    the x-axis label.
+    """
+    keep_tick_labels_inside(figure)
+    outside = texts_outside_figure(figure)
+    if outside:
+        raise RuntimeError("text falls outside the figure: " + "; ".join(outside))
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    # No tight bounding box: it would pull the reserved footer strip back
-    # onto the axis titles.
     figure.savefig(path, dpi=FIGURE_DPI)
     plt.close(figure)
