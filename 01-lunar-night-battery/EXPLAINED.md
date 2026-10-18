@@ -233,7 +233,7 @@ and the shell gains whatever arrives on the inner face and loses whatever leaves
 V_i \frac{d c_i}{dt} = A_i N_\text{in} - A_{i+1} N_\text{out}
 \]
 
-The outer face of the outer shell is the reaction, \(N = j_\text{intercalation}/F\), not a ghost concentration outside the particle. Eight shells are used. That count is an assumption. A warm C/5 discharge with eight shells returns within 10% of the 5 Ah nameplate, which is the check that the grid is not the story.
+The outer face of the outer shell is the reaction, \(N = j_\text{intercalation}/F\), not a ghost concentration outside the particle. Thirty-two shells are used, packed toward the surface. Equal shells with only eight bins made the outer bin thick. The flux between bin centres then required an exaggerated concentration jump, the open-circuit potential fell through 0 V, and a C/2 charge plated about 9.5 mAh at 0 °C and about 1.5 mAh at −10 °C. That ordering reversed the temperatures and disappeared once the surface was resolved: it was the mesh, not the 0 V rule. The edges are \(R(1-(1-u)^{2})\) with \(u\) uniform in the bin index. Grading 2 with 32 shells matches grading 2 with 64 shells to about one percent on the plated amounts. Equal shells were still drifting at 128 bins. A warm C/5 discharge on this mesh returns within 10% of the 5 Ah nameplate.
 
 Outer shells hold more material. State of charge and the inventory use the volume-weighted average, not the mean of the eight numbers.
 
@@ -290,9 +290,15 @@ j = -j_{0,\text{pl}} \exp\left(\frac{\alpha_\text{pl} F \eta_\text{pl}}{RT}\righ
 
 A further difference: our switch plates only the current that intercalation cannot accept, and the cell keeps charging until 4.2 V. PyBaMM distributes the reaction through the electrode thickness, grows ohmic and concentration drops the single-particle model ignores, and often hits 4.2 V having accepted less charge. Absolute plated milliampere-hours are therefore not a pure "colder means more metal" dial. A colder cell also accepts less charge before the cut-off. The honest reading is the pair of numbers in each row of the results section: plated metal, and how much charge was passed.
 
-On our 1C series the absolute plated amount is still monotonic in the cold: none at 0 °C and above, about 204 mAh at −10 °C and about 205 mAh at −20 °C. On C/2 it is not monotonic in the small numbers. The charge at 0 °C plates about 9.5 mAh and the charge at −10 °C plates about 1.5 mAh, then −20 °C plates about 205 mAh. That wiggle is the switch grazing the onset while the throughput is still falling (3.53 Ah at 0 °C, 3.14 Ah at −10 °C, 2.62 Ah at −20 °C). It is left in the figure. Smoothing it would be hiding the criterion.
+The shape of chart A is the criterion, and the two panels are supposed to disagree.
 
-PyBaMM's irreversible model, same empty start, plates more as the temperature falls at both rates. At C/2 the plated amounts from 25 °C down to −20 °C are about 67, 77, 99, 121 and 128 mAh. At 1C they are about 37, 49, 53, 60 and 78 mAh. The 1C charge at −20 °C only passes about 0.79 Ah before 4.2 V, which is why its plated total is smaller than the C/2 charge at the same temperature even though a larger fraction of the current is going into metal.
+Our switch plates nothing until intercalation alone would need a potential below 0 V. The moment it crosses, the leftover current all becomes metal. Plotted against temperature, that is a step: zero, then a jump. There is no constant-voltage tail after 4.2 V. The charge is constant-current and it stops at the voltage limit, so the plated amount is whatever accumulated before that instant. PyBaMM's irreversible model is the exponential above, evaluated all the way through the electrode thickness. The rate is small above 0 V and never quite zero, and different depths of the electrode cross 0 V at different times. Plotted against temperature, that is a smooth rise. Matching the two curves would mean one of them had been tuned to the other.
+
+On the resolved mesh the C/2 charge plates only at −20 °C, about 125 mAh, after 1.36 Ah of a 2.13 Ah charge. At 0 °C the anode bottoms at about 3 mV and plates nothing. At −10 °C it bottoms at about 9 mV. The warmer of those two gets closer to 0 V because it accepts more charge (3.32 Ah against 2.85 Ah) and the graphite surface fills further. It does not cross. The few-milliampere-hour dip that used to sit on this curve, about 9.5 mAh at 0 °C and about 1.5 mAh at −10 °C, was the eight-shell mesh described above. It is not in the figure.
+
+At 1C the switch is off at 0 °C and above (the anode bottoms at about 14 mV, 20 mV and 3 mV at 25, 10 and 0 °C). It trips at −10 °C after 1.17 Ah and finishes with about 75 mAh, having passed 1.59 Ah. At −20 °C it trips earlier, after 0.72 Ah, but the cell is already at 4.2 V by 0.92 Ah, so the total is only about 33 mAh. Colder started sooner and still deposited less, because the voltage limit arrived first. That is the 0 V rule plus a cutoff, not a grid artefact: 32 shells and 64 shells agree to about a milliampere-hour. The onset, not the final total, is what moves earlier as the cell gets colder.
+
+PyBaMM's irreversible model, from the same empty start, plates more as the temperature falls at both rates. At C/2 the plated amounts from 25 °C down to −20 °C are about 67, 77, 99, 121 and 129 mAh. At 1C they are about 37, 49, 53, 60 and 78 mAh. The 1C charge at −20 °C only passes about 0.79 Ah before 4.2 V, which is why its plated total is smaller than the C/2 charge at the same temperature even though a larger fraction of the current is going into metal. PyBaMM does not show our step, and our step does not show PyBaMM's tail.
 
 Waldmann et al. (2014) is often cited for which ageing mechanism dominates below room temperature. The paper resolves, and I have not read the numbers, so this note does not quote a temperature threshold from it.
 
@@ -307,7 +313,7 @@ The single-particle model keeps Butler–Volmer, Fick, Arrhenius, Faraday and a 
 - no solid-phase ohmic drop;
 - temperature uniform and imposed.
 
-Those are the reasons a full DFN was not reimplemented here. The electrolyte equation is a conservation law in \(x\) coupled to a particle at each mesh point, and the potentials are algebraic constraints. Doing it properly means a DAE solver and Jacobians. PyBaMM already is that solver, documented by Sulzer et al. A second implementation would mostly be a transcription, and its bugs would be ours. The single-particle model is short enough that the file is the derivation. The figure shows where the shortcut stops being cheap: at −20 °C and 1C, our model still delivers about 4.11 Ah, and the DFN is down near 1.07 Ah. The missing electrolyte gradient and the missing solid resistance are doing that, not a plotting error.
+Those are the reasons a full DFN was not reimplemented here. The electrolyte equation is a conservation law in \(x\) coupled to a particle at each mesh point, and the potentials are algebraic constraints. Doing it properly means a DAE solver and Jacobians. PyBaMM already is that solver, documented by Sulzer et al. A second implementation would mostly be a transcription, and its bugs would be ours. The single-particle model is short enough that the file is the derivation. The figure shows where the shortcut stops being cheap: at −20 °C and 1C, our model still delivers about 3.75 Ah (11.6 Wh), and the DFN is down near 1.07 Ah (3.51 Wh). The missing electrolyte gradient and the missing solid resistance are doing that, not a plotting error. Tightening the DFN solver from the library default to a relative tolerance of \(10^{-8}\) left that cutoff where it was. What did move the picture was the capacity axis: spacing solver steps evenly in ampere-hours drew a flat stretch near 3.3 V, because once the salt has emptied the solver takes many tiny steps at nearly the same voltage. The axis on chart B is the integral of current. On that axis the −20 °C DFN voltage falls smoothly and is finished by about 1.07 Ah.
 
 ### Energy balance for the night
 
@@ -383,9 +389,9 @@ The threshold where one 1 W unit covers the equatorial hold is \(G (273.15 - 95)
 
 `cell_from_params` copies the book into a frozen `Cell`. There is no hidden default. Electrode area is height times width, \(0.065 \times 1.58 = 0.1027\) m².
 
-Chart A calls `discharged_state`, which is a C/5 discharge at 25 °C from the published full concentrations down to 2.5 V. The particle profiles are replaced by their volume averages. That pair, about 1047 mol/m³ in the graphite (stoichiometry about 0.032) and about 53667 mol/m³ in the NMC (stoichiometry about 0.85), is the rested empty start for every plating charge. Each charge is `simulate(..., direction="charge")` at one temperature and one C-rate, stopped at 4.2 V. Smoke mode keeps only the first and last temperatures and only the 1C rate, and skips PyBaMM.
+Chart A calls `discharged_state`, which is a C/5 discharge at 25 °C from the published full concentrations down to 2.5 V. The particle profiles are replaced by their volume averages. That pair, about 1082 mol/m³ in the graphite (stoichiometry about 0.033) and about 53623 mol/m³ in the NMC (stoichiometry about 0.85), is the rested empty start for every plating charge. Each charge is `simulate(..., direction="charge")` at one temperature and one C-rate, stopped at 4.2 V. Smoke mode keeps only the first and last temperatures and only the 1C rate, and skips PyBaMM.
 
-`simulate` builds eight shells per electrode, then asks SciPy's `solve_ivp` (BDF, relative tolerance \(10^{-4}\), absolute tolerance \(10^{-8}\), maximum step 30 s) to integrate the shell concentrations and the plated moles. At every evaluation:
+`simulate` builds 32 surface-packed shells per electrode, then asks SciPy's `solve_ivp` (BDF, relative tolerance \(10^{-4}\), absolute tolerance \(10^{-8}\), maximum step 30 s) to integrate the shell concentrations and the plated moles. At every evaluation:
 
 - `split` turns the cell current into an interfacial current on each electrode.
 - `_anode_split` does the 0 V test described above. The cathode has no plating branch; its interfacial current is the whole cell current.
@@ -423,7 +429,7 @@ Constants are in the table at the top of "Fundamentals". Everything else is one 
 
 **Open-circuit coefficients.** Listed under `ocp_negative_coefficients` and `ocp_positive_coefficients`. They are Chen's fit, not a Nernst derivation. The formula is in the Nernst section.
 
-**Numerical assumptions.** 8 shells. Relative tolerance \(10^{-4}\). Absolute tolerance \(10^{-8}\). Swept only as discretisation choices. Tighter tolerances did not move the plotted curves enough to see.
+**Numerical assumptions.** 32 shells, graded toward the surface with power 2. Relative tolerance \(10^{-4}\). Absolute tolerance \(10^{-8}\). Swept as discretisation choices. Eight equal shells false-plated a few milliampere-hours around 0 °C; the graded mesh does not, and 32 shells match 64. Tighter integrator tolerances did not move the plotted curves enough to see.
 
 **Scenario assumptions and cited temperatures.** Plating temperatures −20, −10, 0, 10, 25 °C, swept to cover Ingenuity's charge window and Perseverance's lower limit. Plating rates 0.5C and 1C, swept because NASA does not publish Ingenuity's charge current. Discharge temperatures 25, 0 and −20 °C, cited: the first two are Ingenuity's energy temperatures, and −20 °C is Perseverance's lower limit. Discharge rate 1C, swept against 0.2C; at 0.2C the sag from 25 °C to 0 °C is only a few percent and the chart has nothing to show. Precondition C/5, a slow discharge so the empty state is nearly rested.
 
@@ -452,11 +458,13 @@ Nothing draws a random number. The same `params.yaml` gives the same charts. `--
 
 Two panels, same vertical axis. The left is our 0 V switch. The right is PyBaMM's irreversible plating kinetics on the Doyle–Fuller–Newman model. Blue is C/2, orange is 1C. The vertical axis is milliampere-hours of metal at the moment the cell hits 4.2 V, starting from the same rested empty state.
 
-Our 1C charge plates nothing at 25, 10 and 0 °C (the anode bottoms at about 11 mV, 7 mV and 2 mV). At −10 °C it plates about 204 mAh having passed 2.13 Ah. At −20 °C it plates about 205 mAh having passed only 1.54 Ah. The C/2 charge plates nothing at 25 °C and 10 °C, grazes the onset at 0 °C (about 9.5 mAh) and −10 °C (about 1.5 mAh), and plates about 205 mAh at −20 °C. Faster charge brings the heavy plating forward by about ten degrees on this cell, in this model.
+The left-hand panel is a step because the rule is a step. Nothing plates while the anode can still pass the current above 0 V versus lithium metal. When it cannot, the leftover current plates, and the line jumps. There is no constant-voltage phase after 4.2 V to round that corner off. The right-hand panel rises smoothly because PyBaMM's plating rate is a Butler–Volmer exponential that is small but not zero above 0 V, and because the reaction is spread through the thickness of the electrode. The two shapes are the two models. They are not two measurements of one curve.
 
-PyBaMM plates at every temperature, more as it gets colder, and less in absolute milliampere-hours at 1C than at C/2 because the 1C charge is cut short. Read the panel as "the kinetics have a tail, and the electrode is not uniform", not as a second measurement of the left-hand panel.
+On our panel, C/2 plates only at −20 °C, about 125 mAh out of 2.13 Ah. At 0 °C and −10 °C it plates nothing (the anode stays about 3 mV and 9 mV positive). 1C plates nothing down through 0 °C, about 75 mAh at −10 °C (1.59 Ah passed, plating from 1.17 Ah), and about 33 mAh at −20 °C (only 0.92 Ah passed, plating from 0.72 Ah). The −20 °C point is below the −10 °C point because the voltage limit cuts the charge off. The onset still moves earlier as the cell gets colder. A version of this figure with eight equal shells showed a few milliampere-hours at 0 °C and −10 °C on C/2, in that order. That was the outer bin over-filling. It is not this figure.
 
-Takeaway: the cold-charge limit is the negative electrode potential reaching 0 V versus lithium metal. It comes out of the kinetics and the transport. It is not a number typed in as a charger setting.
+PyBaMM plates at every temperature, more as it gets colder, and less in absolute milliampere-hours at 1C than at C/2 because the 1C charge is cut short. Read that panel as the kinetics having a tail, and the electrode not being uniform.
+
+Takeaway: the cold-charge limit is the negative electrode potential reaching 0 V versus lithium metal. It comes out of the kinetics and the transport. It is not a number typed in as a charger setting. The amount of metal at the voltage cutoff is not, by itself, a ranking of how cold the cell was.
 
 ### B — 9 November. Same charge, less energy back when the cell is cold
 
@@ -464,21 +472,25 @@ Solid lines are our model. Dashed lines are PyBaMM, plating off. Warm is 25 °C,
 
 | | 25 °C | 0 °C | −20 °C | Drop, 0 °C vs 25 °C |
 |---|---|---|---|---|
-| Our single-particle model | 17.51 Wh, 4.97 Ah | 16.06 Wh, 4.77 Ah | 13.16 Wh, 4.11 Ah | 8.3% |
+| Our single-particle model | 17.30 Wh, 4.94 Ah | 15.48 Wh, 4.66 Ah | 11.63 Wh, 3.75 Ah | 10.5% |
 | PyBaMM DFN | 17.22 Wh, 4.92 Ah | 15.27 Wh, 4.63 Ah | 3.51 Wh, 1.07 Ah | 11.4% |
 | Ingenuity's pack, different cells | 44.4 Wh | 38.8 Wh | not the comparison | 12.6% |
 
-The watt-hours are not comparable across the bottom row. Ingenuity's cells are 2 Ah nameplate in a six-cell series string. Ours is one 5 Ah commercial cell. The percentages from 25 °C to 0 °C land in the same neighbourhood: 8%, 11%, 13%.
+The watt-hours are not comparable across the bottom row. Ingenuity's cells are 2 Ah nameplate in a six-cell series string. Ours is one 5 Ah commercial cell. The percentages from 25 °C to 0 °C land in the same neighbourhood: 11%, 11%, 13%.
 
-The −20 °C dashed curve falling over early is the single-particle assumption failing in public. Electrolyte gradients and solid resistance, which we dropped, cut the DFN off at about 1.07 Ah. Our model still has lithium it can reach and delivers 4.11 Ah. Believe the DFN direction at −20 °C. Do not quote our 13.2 Wh there as a cell measurement.
+The −20 °C dashed curve ending near 1.1 Ah is the single-particle assumption failing in public. During discharge, lithium ions are consumed at the positive electrode and released at the negative one. In the DFN the positive-electrode salt concentration falls from the initial 1000 mol/m³ to essentially zero by about 0.4 Ah, while the negative electrode is enriched past 3000 mol/m³. Once a pore is empty of salt, that part of the electrode cannot keep the reaction going, and the terminal voltage is pulled down to 2.5 V by about 1.07 Ah. The solver's minimum goes a fraction below zero there; tightening the relative tolerance to \(10^{-8}\) did not move the cutoff, so that undershoot is the empty-pore limit of this discretisation, not a second plateau. An earlier draft of the figure spaced the solver's time steps evenly along the ampere-hour axis. After the salt had gone, those steps are tiny and the voltage is nearly constant, so the line looked flat near 3.3 V from about 0.2 to 0.7 Ah. The axis is now the integral of current, and the voltage falls smoothly.
+
+Our model holds the salt concentration at 1000 mol/m³ everywhere and ignores the electronic resistance of the positive coating (0.18 S/m in this parameter set). It still has lithium it can reach, and it delivers 3.75 Ah and 11.6 Wh. That number is what the single-particle assumptions produce. It is not a prediction of this cell at −20 °C. From 25 °C to 0 °C the two models still agree on the size of the drop, and that is the comparison with Ingenuity. Below that, trust the DFN direction: transport in the electrolyte, which we removed, is what ends the discharge.
 
 Takeaway: cold energy loss of this kind is voltage sag. Warm the cell and it comes back. That is a different loss from the metal in chart A.
 
 ### C — 16 November. Halve the heat leak and you roughly halve the battery
 
-Left panel: heater energy against conductance, no radioisotope heat, for a 354-hour night at a 95 K sink and a 125-hour night at a 50 K sink. Both lines are straight in energy versus \(G\), which is \(P = G \Delta T\) times a fixed duration. At the low end, 0.005 W/K, the long night needs about 315 Wh and the short night about 139 Wh. At 0.2 W/K those are about 12613 Wh and about 5579 Wh. The right-hand axis converts watt-hours to cell kilograms at 142.12 Wh/kg. At 0.02 W/K the long-night hold is about 3.56 W, about 1261 Wh, about 8.9 kg of cells. The vertical line is the example radiative leak, \(G \approx 0.0349\) W/K.
+Top left: heater energy against conductance, no radioisotope heat, for a 354-hour night at a 95 K sink and a 125-hour night at a 50 K sink. Both lines are straight in energy versus \(G\), which is \(P = G \Delta T\) times a fixed duration. At the low end, 0.005 W/K, the long night needs about 315 Wh and the short night about 139 Wh. At 0.2 W/K those are about 12613 Wh and about 5579 Wh. The vertical line is the example radiative leak, \(G \approx 0.0349\) W/K.
 
-Right panel: the same four combinations, zoomed to \(G \le 0.04\) W/K, so a 1 W radioisotope unit is visible. On the long night at 0.005 W/K the unit covers the leak and the heater energy is zero. The unit saves about 1 W times the length of the night only when the leak exceeds 1 W. On the full-scale left panel that offset is a few percent, which is why it has its own axes.
+Top right: the same two leaks, converted to cell mass at 142.12 Wh/kg. The mass is on its own axes. A second vertical scale drawn on the energy panel printed its tick labels on top of the neighbouring panel. At 0.02 W/K the long-night hold is about 3.56 W, about 1261 Wh, about 8.9 kg of cells.
+
+Bottom: all four combinations, zoomed to \(G \le 0.04\) W/K, so a 1 W radioisotope unit is visible. On the long night at 0.005 W/K the unit covers the leak and the heater energy is zero. The unit saves about 1 W times the length of the night only when the leak exceeds 1 W. On the full-scale energy panel that offset is a few percent, which is why the zoom has its own axes.
 
 The 354-hour night costs more heater energy than the 125-hour night at the same conductance, even though the short night's sink is colder. Duration dominates this particular sweep.
 
@@ -500,8 +512,8 @@ Takeaway: once the heater has spent the battery, keep-warm and hibernation are t
 - Nameplate. A warm C/5 discharge returns within 10% of 5 Ah and ends at 2.5 V.
 - Arrhenius. Our factors match PyBaMM's evaluated functions at 253.15 K and 298.15 K.
 - Energy, night model. The integrated balance closes to better than 500 J on keep-warm and on hibernation. Doubling \(G\), with no radioisotope heat, doubles the heater energy both as algebra and in a short dynamic hold.
-- Ingenuity. Relative drop 12.6% against our 8.3% and PyBaMM's 11.4% from 25 °C to 0 °C at 1C. Direction and rough size only.
-- Plating trend. At 1C our plated amount at −20 °C exceeds −10 °C, which exceeds 0 °C, and the warm charges plate none. PyBaMM's plated amount at −20 °C exceeds its amount at 25 °C. The C/2 onset graze is documented above rather than asserted away.
+- Ingenuity. Relative drop 12.6% against our 10.5% and PyBaMM's 11.4% from 25 °C to 0 °C at 1C. Direction and rough size only.
+- Plating onset. At 1C our switch stays off at 25 °C and at 0 °C. Plating at −20 °C begins after less charge than plating at −10 °C. The final milliampere-hours go the other way, because the −20 °C charge hits 4.2 V first. On C/2 the resolved mesh plates at −20 °C and not at 0 °C or −10 °C. PyBaMM's plated amount at −20 °C exceeds its amount at 25 °C.
 - A ten-second PyBaMM discharge at 25 °C stays inside the voltage window. That is a smoke check, not a validation.
 
 ## Assumptions and limitations
@@ -529,11 +541,11 @@ This is a teaching model. It is not a design tool and it is not a safety tool. D
 
 ## Questions someone will ask
 
-**Why not just refuse to charge below −5 °C, as Ingenuity does?** That limit is NASA's operating window for those Sony cells at a low rate. Perseverance's cells, in the same presentation, are allowed down to −20 °C. The window is an output of the chemistry and the rate. Coding it in as a stop would make chart A a step function we had typed.
+**Why not just refuse to charge below −5 °C, as Ingenuity does?** That limit is NASA's operating window for those Sony cells at a low rate. Perseverance's cells, in the same presentation, are allowed down to −20 °C. The window is an output of the chemistry and the rate. The step on the left of chart A is that output for this parameter set and this 0 V rule. It is not a charger setting typed in as a temperature.
 
 **Your two plating models disagree by a factor of several. Which one is right?** Neither is a measurement. Ours is the 0 V criterion with uniform reaction and a fixed electrolyte, so it is silent until the criterion trips and then it dumps the leftover current into metal. PyBaMM's is a distributed electrode with a plating rate that never quite turns off, and a parameter set whose plating constant is a fitted value. The shared qualitative result at 1C is that colder charging plates more. The milliamperes are not a prediction for a named cell.
 
-**Why is the −20 °C dashed curve so much worse than the solid one?** Because the dashed curve is allowed to run out of electrolyte salt at the reaction site, and to drop voltage across a poorly conducting positive coating. The solid curve froze both of those effects out when it became a single particle. The gap is the model, and it is drawn so it stays visible.
+**Why is the −20 °C dashed curve so much worse than the solid one?** Because the dashed curve is allowed to run out of electrolyte salt at the positive electrode, and to drop voltage across a poorly conducting positive coating. By about 0.4 Ah the positive-electrode salt concentration in the DFN is essentially zero, and the discharge is over by 1.07 Ah and 3.51 Wh. The solid curve holds the salt at 1000 mol/m³ and skips that electronic resistance, so it still delivers 3.75 Ah and 11.6 Wh. The gap is the model. Trust the dashed direction at −20 °C. The 25 °C to 0 °C drop is where the two models, and Ingenuity's percentage, still sit together.
 
 **Is the 8% drop a validation against Ingenuity?** Only as a relative drop, on a different cell, at a C-rate Ingenuity's presentation does not state. Matching 44.4 Wh would have meant the wrong cell.
 

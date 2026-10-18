@@ -57,9 +57,22 @@ class _Shells:
     face_areas: np.ndarray
 
 
-def _shells(radius_m: float, count: int) -> _Shells:
-    """Equal radial shells. The outer shell is the one the reaction sees."""
-    edges = np.linspace(0.0, radius_m, count + 1)
+def _shells(radius_m: float, count: int, grading: float) -> _Shells:
+    """Radial shells, packed toward the surface when ``grading`` is above 1.
+
+    The reaction sits on the outer face. Equal shells make that bin thick, and
+    the flux between bin centres then has to be carried by an exaggerated
+    concentration jump. On a charge that over-fills the outer bin, the open-circuit
+    potential falls through 0 V, and the plating switch trips when a finer mesh
+    would still be intercalating. ``grading`` 1 is equal spacing. Above 1 the
+    edges are ``R * (1 - (1-u)^grading)`` with ``u`` uniform, so the outer bins
+    are thinner. It is a mesh choice, not a particle property.
+    """
+    if grading < 1.0:
+        raise ValueError("shell grading must be at least 1")
+    fraction = np.linspace(0.0, 1.0, count + 1)
+    scaled = fraction if grading == 1.0 else 1.0 - (1.0 - fraction) ** grading
+    edges = radius_m * scaled
     centers = 0.5 * (edges[:-1] + edges[1:])
     volumes = (4.0 / 3.0) * np.pi * (edges[1:] ** 3 - edges[:-1] ** 3)
     face_areas = 4.0 * np.pi * edges**2
@@ -213,8 +226,8 @@ def simulate(
         # is what actually stops a healthy cell.
         duration_s = 1.25 * 3600.0 / c_rate
 
-    negative_shells = _shells(cell.negative_radius_m, cell.shell_count)
-    positive_shells = _shells(cell.positive_radius_m, cell.shell_count)
+    negative_shells = _shells(cell.negative_radius_m, cell.shell_count, cell.shell_grading)
+    positive_shells = _shells(cell.positive_radius_m, cell.shell_count, cell.shell_grading)
     count = cell.shell_count
     guess = {
         "negative": cell.open_circuit_negative(negative_concentration / cell.cmax_negative),

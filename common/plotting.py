@@ -53,9 +53,38 @@ def apply_style() -> None:
     )
 
 
+# A LinkedIn post shows a figure at about 1200 px across. Figures in this
+# series are about 8.6 to 9.4 inches wide, so 140 dpi lands in that window
+# and the point sizes above are the sizes a reader actually gets.
+FIGURE_DPI = 140
+
+
+def reserve_footer(figure: plt.Figure) -> None:
+    """Keep the disclaimer below the x-axis titles.
+
+    A footer drawn at the bottom of the axes, then saved with a tight bounding
+    box, sits on the axis title. The layout rect stops short of the bottom
+    edge and the disclaimer occupies that strip.
+    """
+    engine = figure.get_layout_engine()
+    if engine is not None and hasattr(engine, "set"):
+        engine.set(rect=(0.0, 0.11, 1.0, 1.0))
+    figure.text(
+        0.5,
+        0.025,
+        DISCLAIMER,
+        ha="center",
+        va="bottom",
+        fontsize=8,
+        color=COLOURS["muted"],
+    )
+
+
 def save_figure(figure: plt.Figure, path: Path) -> None:
     """Write a PNG. Charts are produced only by this function, never edited."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    figure.savefig(path, dpi=160, bbox_inches="tight")
+    # No tight bounding box: it would pull the reserved footer strip back
+    # onto the axis titles.
+    figure.savefig(path, dpi=FIGURE_DPI)
     plt.close(figure)

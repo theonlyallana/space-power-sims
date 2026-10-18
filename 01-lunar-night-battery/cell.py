@@ -63,6 +63,7 @@ class Cell:
     ocp_negative: dict
     ocp_positive: dict
     shell_count: int
+    shell_grading: float
     relative_tolerance: float
     absolute_tolerance: float
 
@@ -245,6 +246,7 @@ def cell_from_params(book: dict[str, Entry]) -> Cell:
         ocp_negative=dict(require(book, "ocp_negative_coefficients").value),
         ocp_positive=dict(require(book, "ocp_positive_coefficients").value),
         shell_count=int(require(book, "particle_shell_count").value),
+        shell_grading=_float(book, "particle_shell_grading"),
         relative_tolerance=_float(book, "ode_relative_tolerance"),
         absolute_tolerance=_float(book, "ode_absolute_tolerance"),
     )

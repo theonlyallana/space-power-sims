@@ -285,10 +285,16 @@ parameters:
   # --- Numerical choices for our own integrator ---
 
   particle_shell_count:
-    value: 8
+    value: 32
     unit: "1"
     source: ASSUMPTION
-    note: "Number of finite-volume shells in each particle. Swept mentally against 16 during development; 8 resolves the surface well enough that the discharge capacity stays within a few percent of the 5 Ah nameplate. Not a physical input."
+    note: "Number of finite-volume shells in each particle. Swept from 8 to 128. Eight equal shells over-filled the outer bin and plated a few milliampere-hours at 0 C on a C/2 charge; that wiggle is gone once the surface is resolved. With the grading below, 32 shells and 64 shells agree to about one percent on the plated amounts. Not a physical input."
+
+  particle_shell_grading:
+    value: 2.0
+    unit: "1"
+    source: ASSUMPTION
+    note: "Packs radial nodes toward the particle surface. Edges follow R*(1-(1-u)^grading) with u uniform. Swept over 1 (equal shells), 1.5, 2 and 2.5. Grading 2 with 32 shells matches grading 2 with 64 shells; equal shells were still drifting at 128 nodes. A mesh choice, not a measured length."
 
   ode_relative_tolerance:
     value: 1.0e-4

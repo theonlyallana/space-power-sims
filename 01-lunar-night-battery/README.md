@@ -50,8 +50,8 @@ Set `SPACE_POWER_SIMS_MODE=smoke` first if you want the short path CI uses.
 
 | Chart | Takeaway | Post |
 |---|---|---|
-| [A](figures/A_plated_lithium.png) | At 1C our 0 V rule plates about 200 mAh once the charge is at −10 °C or below, and none at 0 °C or warmer. PyBaMM's kinetics plate at every temperature and plate more as it gets colder. | 2 Nov 2026 |
-| [B](figures/B_discharge_curves.png) | Our model returns 8% less energy at 0 °C than at 25 °C (17.5 Wh down to 16.1 Wh). PyBaMM returns 11% less. Ingenuity's different pack was estimated 13% less (38.8 / 44.4 Wh). | 9 Nov 2026 |
+| [A](figures/A_plated_lithium.png) | Our 0 V rule is a step: C/2 plates about 125 mAh only at −20 °C, and 1C plates about 75 mAh at −10 °C but only about 33 mAh at −20 °C because that charge hits 4.2 V sooner. PyBaMM's kinetics rise smoothly and plate at every temperature. | 2 Nov 2026 |
+| [B](figures/B_discharge_curves.png) | Our model returns 10.5% less energy at 0 °C than at 25 °C (17.3 Wh down to 15.5 Wh). PyBaMM returns 11.4% less. Ingenuity's different pack was estimated 12.6% less (38.8 / 44.4 Wh). At −20 °C PyBaMM is down to 3.5 Wh; our model, which ignores electrolyte transport, still returns 11.6 Wh. | 9 Nov 2026 |
 | [C](figures/C_heater_energy.png) | With no radioisotope heater, heater energy is proportional to the heat-leak conductance. One 1 W unit only covers the leak below about 0.006 W/K. | 16 Nov 2026 |
 | [D](figures/D_keep_warm_vs_hibernate.png) | A 3 kg pack at 0.02 W/K spends all 426 Wh by about 124 h and is at the 95 K sink by dawn anyway. Hibernation still has a full state of charge, at the same sink temperature. | 23 Nov 2026 |
 
@@ -60,7 +60,7 @@ Set `SPACE_POWER_SIMS_MODE=smoke` first if you want the short path CI uses.
 This is a teaching model, not a design tool and not a safety tool.
 
 - One temperature for the whole pack. No gradients inside a cell, no neighbouring cells.
-- Our cell model holds the electrolyte concentration fixed. That is why, at −20 °C and 1C, it still delivers about 4.1 Ah while PyBaMM's Doyle-Fuller-Newman model is down near 1.1 Ah.
+- Our cell model holds the electrolyte concentration fixed. That is why, at −20 °C and 1C, it still delivers about 3.8 Ah while PyBaMM's Doyle-Fuller-Newman model is down near 1.1 Ah. The positive-electrode salt in the Doyle-Fuller-Newman model is essentially gone by about 0.4 Ah.
 - The plating rule is a switch at 0 V. PyBaMM integrates a Butler-Volmer plating reaction, including a tail above 0 V. The two panels of chart A are supposed to disagree in magnitude.
 - The PyBaMM cell is an LG M50 parameter set (NMC / graphite), not Ingenuity's six Sony VTC4 cells, and not a cell qualified for space.
 - Insulation conductance, pack mass, specific heat and the sunset temperature are assumptions. Specific heat is held constant down to 95 K, which overstates the thermal mass in the cold.
@@ -68,7 +68,7 @@ This is a teaching model, not a design tool and not a safety tool.
 
 ## Validation
 
-Ingenuity's beginning-of-life pack energy, 44.4 Wh at 25 °C and 38.8 Wh at 0 °C, is a 12.6% drop. Our single-particle model drops 8.3% over that step at 1C. PyBaMM's DFN drops 11.4%. The watt-hours themselves are not comparable: different cells, and our cell is about 5 Ah rather than Ingenuity's 2 Ah cells. A warm slow discharge of our model returns within 10% of the 5 Ah nameplate. The night model conserves energy to a few hundred joules, and with no radioisotope heat the heater energy doubles when the conductance doubles.
+Ingenuity's beginning-of-life pack energy, 44.4 Wh at 25 °C and 38.8 Wh at 0 °C, is a 12.6% drop. Our single-particle model drops 10.5% over that step at 1C. PyBaMM's DFN drops 11.4%. The watt-hours themselves are not comparable: different cells, and our cell is about 5 Ah rather than Ingenuity's 2 Ah cells. A warm slow discharge of our model returns within 10% of the 5 Ah nameplate. The night model conserves energy to a few hundred joules, and with no radioisotope heat the heater energy doubles when the conductance doubles.
 
 ## Sources
 

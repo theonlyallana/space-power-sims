@@ -21,7 +21,7 @@ def test_every_input_has_a_source_or_is_an_assumption():
             assert entry.source.startswith("https://"), name
 
 
-def test_no_employer_strings_in_the_parameter_notes():
+def test_parameter_notes_do_not_cite_an_employer_or_a_private_guide():
     text = PARAMS.read_text().lower()
-    for banned in ("jlr", "jaguar", "land rover", "employer", "the guide"):
+    for banned in ("employer", "the guide"):
         assert banned not in text

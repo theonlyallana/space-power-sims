@@ -28,6 +28,7 @@ from common.units import trapz
 class PybammCurve:
     time_s: np.ndarray
     voltage_V: np.ndarray
+    capacity_Ah: np.ndarray
     throughput_Ah: float
     plated_Ah: float
     energy_Wh: float
@@ -66,7 +67,13 @@ def _solve(experiment: str, temperature_K: float, negative_mol_m3: float, positi
     plated = 0.0
     if plating != "none":
         plated = float(solution["Loss of capacity to negative lithium plating [A.h]"].entries[-1])
-    throughput = abs(trapz(current, time_s)) / 3600.0
+    # Capacity has to follow the clock, not the solver's step index. After the
+    # electrolyte empties, IDAKLU takes many tiny steps at nearly constant
+    # voltage. Spacing those steps evenly in ampere-hours draws a plateau the
+    # cell never had.
+    step_ah = 0.5 * np.diff(time_s) * (np.abs(current[1:]) + np.abs(current[:-1])) / 3600.0
+    capacity_Ah = np.concatenate([[0.0], np.cumsum(step_ah)])
+    throughput = float(capacity_Ah[-1]) if len(capacity_Ah) else 0.0
     # Discharge current is positive in PyBaMM, so this integral is positive
     # for a discharge and negative for a charge. Callers that want delivered
     # energy use the discharge runs.
@@ -74,6 +81,7 @@ def _solve(experiment: str, temperature_K: float, negative_mol_m3: float, positi
     return PybammCurve(
         time_s=time_s,
         voltage_V=voltage,
+        capacity_Ah=capacity_Ah,
         throughput_Ah=throughput,
         plated_Ah=plated,
         energy_Wh=energy_Wh,

@@ -17,11 +17,10 @@ import numpy as np
 from cell import Cell, cell_from_params
 from common.constants import STEFAN_BOLTZMANN
 from common.params import Entry, require
-from common.plotting import COLOURS, DISCLAIMER, apply_style, save_figure
+from common.plotting import COLOURS, apply_style, reserve_footer, save_figure
 from common.units import celsius_to_kelvin, watt_hours_to_joules
 from spm import discharged_state, simulate
 from thermal import (
-    battery_mass_kg,
     ingenuity_specific_energy_Wh_per_kg,
     radiative_conductance_W_per_K,
     simulate_night,
@@ -35,10 +34,6 @@ TEMPERATURE_COLOURS = {
     -10.0: "#56B4E9",
     -20.0: COLOURS["cold"],
 }
-
-
-def _footer(figure: plt.Figure) -> None:
-    figure.text(0.01, 0.01, DISCLAIMER, fontsize=7, color=COLOURS["muted"])
 
 
 def _rate_label(c_rate: float) -> str:
@@ -106,10 +101,11 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     rate_colours = {0.5: COLOURS["mid"], 1.0: COLOURS["warm"]}
     apply_style()
-    figure, axes = plt.subplots(1, 2, figsize=(10.2, 4.8), sharey=True)
+    # Wide enough that 140 dpi is about 1300 px, the size a LinkedIn post shows.
+    figure, axes = plt.subplots(1, 2, figsize=(9.2, 5.15), sharey=True, layout="constrained")
     for axis, rows, title in (
-        (axes[0], ours, "Our model: plate only below 0 V vs Li"),
-        (axes[1], pybamm_rows or ours, "PyBaMM DFN, irreversible Butler-Volmer"),
+        (axes[0], ours, "Our model: off until the anode hits 0 V"),
+        (axes[1], pybamm_rows or ours, "PyBaMM: a smooth Butler-Volmer tail"),
     ):
         if axis is axes[1] and smoke:
             axis.set_title("PyBaMM cross-check skipped in smoke mode")
@@ -129,12 +125,8 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
         axis.legend(frameon=False)
         axis.set_ylim(bottom=0.0)
     axes[0].set_ylabel("Plated lithium at 4.2 V (mAh)")
-    figure.suptitle(
-        "Colder charging deposits more lithium as metal",
-        fontsize=14,
-        y=1.02,
-    )
-    _footer(figure)
+    figure.suptitle("Colder charging deposits more lithium as metal", fontsize=14)
+    reserve_footer(figure)
     save_figure(figure, out / "A_plated_lithium.png")
     return {
         "empty_negative_mol_m3": empty_negative,
@@ -153,7 +145,7 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     ours = []
     apply_style()
-    figure, axis = plt.subplots(figsize=(7.4, 5.0))
+    figure, axis = plt.subplots(figsize=(8.6, 5.5), layout="constrained")
     for temperature_C in temperatures:
         result = simulate(
             cell,
@@ -188,11 +180,11 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
                 cell.initial_negative,
                 cell.initial_positive,
             )
-            # Spread the integrated ampere-hours along the trace. PyBaMM's
-            # current is constant, so this is the same shape as time times current.
-            capacity = np.linspace(0.0, curve.throughput_Ah, len(curve.voltage_V))
+            # capacity_Ah is the integral of current, not an even spacing of
+            # solver steps. Even spacing drew a false plateau once the salt
+            # had emptied and the solver took tiny steps.
             axis.plot(
-                capacity,
+                curve.capacity_Ah,
                 curve.voltage_V,
                 color=TEMPERATURE_COLOURS.get(temperature_C, COLOURS["ink"]),
                 linestyle="--",
@@ -240,7 +232,7 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
         color=COLOURS["ink"],
         bbox={"boxstyle": "round,pad=0.3", "facecolor": "white", "edgecolor": "#dddddd"},
     )
-    _footer(figure)
+    reserve_footer(figure)
     save_figure(figure, out / "B_discharge_curves.png")
     return {
         "ours": ours,
@@ -275,10 +267,21 @@ def figure_c(book: dict[str, Entry], out: Path) -> dict:
     )
     series = {}
     apply_style()
-    # Two panels because a 1 W radioisotope unit is invisible on a plot that
-    # runs up to tens of watts of leak. The left panel is the scaling. The
-    # right panel is the corner where that one watt actually covers the leak.
-    figure, axes = plt.subplots(1, 2, figsize=(10.6, 4.8))
+    # Three panels. A twin mass axis on a side-by-side layout prints its tick
+    # labels on top of the next panel. Mass gets its own axes. The bottom
+    # panel is the corner where one watt is visible; on the full-scale plot
+    # that watt is a few percent of the leak.
+    figure = plt.figure(figsize=(9.4, 7.8), layout="constrained")
+    grid = figure.add_gridspec(2, 2)
+    ax_energy = figure.add_subplot(grid[0, 0])
+    ax_mass = figure.add_subplot(grid[0, 1])
+    ax_zoom = figure.add_subplot(grid[1, :])
+    short_labels = {
+        "354 h night, no RHU": "354 h, no RHU",
+        "354 h night, one 1 W RHU": "354 h, one 1 W RHU",
+        "125 h PSR night, no RHU": "125 h, no RHU",
+        "125 h PSR night, one 1 W RHU": "125 h, one 1 W RHU",
+    }
     for label, sink, hours, radioisotope, colour, style in cases:
         energy = np.array(
             [
@@ -290,39 +293,40 @@ def figure_c(book: dict[str, Entry], out: Path) -> dict:
             "conductance_W_per_K": conductances.tolist(),
             "heater_Wh": energy.tolist(),
         }
+        short = short_labels[label]
+        ax_zoom.plot(conductances, energy, color=colour, linestyle=style, label=short)
         if radioisotope == 0.0:
-            axes[0].plot(conductances, energy, color=colour, linestyle=style, label=label)
-        axes[1].plot(conductances, energy, color=colour, linestyle=style, label=label)
+            ax_energy.plot(conductances, energy, color=colour, linestyle=style, label=short)
+            ax_mass.plot(
+                conductances,
+                energy / specific,
+                color=colour,
+                linestyle=style,
+                label=short,
+            )
     example_g = radiative_conductance_W_per_K(
         float(require(book, "example_emissivity").value),
         float(require(book, "example_radiating_area_m2").value),
         setpoint,
         equator,
     )
-    axes[0].axvline(
-        example_g,
-        color=COLOURS["second"],
-        linewidth=1.2,
-        label="Example radiation (assumption)",
-    )
-    axes[0].set_xlabel("Insulation conductance G (W/K)")
-    axes[0].set_ylabel("Heater energy over the night (Wh)")
-    axes[0].set_title("Energy tracks the leak")
-    mass_axis = axes[0].twinx()
-    mass_axis.set_ylabel("Cell mass to store it (kg)")
-    y_low, y_high = axes[0].get_ylim()
-    mass_axis.set_ylim(battery_mass_kg(max(y_low, 0.0), specific), battery_mass_kg(y_high, specific))
-    mass_axis.spines["top"].set_visible(False)
-    axes[0].legend(frameon=False, fontsize=7, loc="upper left")
+    for axis in (ax_energy, ax_mass):
+        axis.axvline(example_g, color=COLOURS["second"], linewidth=1.2, label="Example radiation")
+        axis.set_xlabel("Insulation conductance G (W/K)")
+        axis.legend(frameon=False, fontsize=8, loc="upper left")
+    ax_energy.set_ylabel("Heater energy over the night (Wh)")
+    ax_energy.set_title("Energy tracks the leak")
+    ax_mass.set_ylabel("Cell mass to store it (kg)")
+    ax_mass.set_title("Same leak, as cell mass")
     zoom_index = int(np.argmax(conductances >= 0.04))
-    axes[1].set_xlim(float(conductances[0]), 0.04)
-    axes[1].set_ylim(0.0, series["354 h night, no RHU"]["heater_Wh"][zoom_index] * 1.15)
-    axes[1].set_xlabel("Insulation conductance G (W/K)")
-    axes[1].set_ylabel("Heater energy over the night (Wh)")
-    axes[1].set_title("Where one 1 W RHU is enough")
-    axes[1].legend(frameon=False, fontsize=7, loc="upper left")
+    ax_zoom.set_xlim(float(conductances[0]), 0.04)
+    ax_zoom.set_ylim(0.0, series["354 h night, no RHU"]["heater_Wh"][zoom_index] * 1.15)
+    ax_zoom.set_xlabel("Insulation conductance G (W/K)")
+    ax_zoom.set_ylabel("Heater energy over the night (Wh)")
+    ax_zoom.set_title("Where one 1 W radioisotope heater is enough")
+    ax_zoom.legend(frameon=False, fontsize=8, loc="upper left", ncol=2)
     figure.suptitle("Halve the heat leak and you roughly halve the battery", fontsize=14)
-    _footer(figure)
+    reserve_footer(figure)
     save_figure(figure, out / "C_heater_energy.png")
     return {
         "specific_energy_Wh_per_kg": specific,
@@ -363,7 +367,7 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     hibernate = simulate_night(strategy="hibernate", **common)
 
     apply_style()
-    figure, axes = plt.subplots(2, 1, figsize=(7.6, 6.2), sharex=True)
+    figure, axes = plt.subplots(2, 1, figsize=(8.6, 6.6), sharex=True, layout="constrained")
     axes[0].plot(keep.time_h, keep.temperature_C, color=COLOURS["warm"], label="Keep warm")
     axes[0].plot(hibernate.time_h, hibernate.temperature_C, color=COLOURS["mid"], label="Hibernate")
     axes[0].axhline(0.0, color=COLOURS["muted"], linewidth=0.8, linestyle=":")
@@ -378,11 +382,13 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     axes[1].legend(frameon=False, loc="center right")
     empty_index = int(np.argmax(keep.state_of_charge <= 1e-3))
     empty_hour = float(keep.time_h[empty_index])
+    # The label sits in the open part of the panel, under the 0 °C line.
+    # Putting it above the axes lands it on the title.
     axes[0].annotate(
-        f"heater stops\n{empty_hour:.0f} h",
+        f"heater stops, {empty_hour:.0f} h",
         xy=(empty_hour, 0.0),
-        xytext=(empty_hour + 25, 40),
-        fontsize=8,
+        xytext=(empty_hour + 55, -48),
+        fontsize=9,
         color=COLOURS["warm"],
         arrowprops={"arrowstyle": "->", "color": COLOURS["warm"]},
     )
@@ -397,7 +403,7 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
         fontsize=8,
         color=COLOURS["muted"],
     )
-    _footer(figure)
+    reserve_footer(figure)
     save_figure(figure, out / "D_keep_warm_vs_hibernate.png")
 
     empty = None
