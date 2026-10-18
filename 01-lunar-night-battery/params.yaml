@@ -1,0 +1,477 @@
+# Inputs for the November lunar-night study.
+#
+# Every entry has a source URL or the word ASSUMPTION. An assumption's note
+# says what range was swept. CODATA constants live in common/constants.py,
+# not here, because they are not scenario choices.
+#
+# Cell scalars are the published LG M50 parameter set as shipped in PyBaMM
+# 25.8.0 (OKane2022, built on Chen2020). A test checks our copies against that
+# library so a typo here fails CI. Activation energies that Chen et al. did
+# not report are the ones PyBaMM's own functions use; the file comments there
+# name Ecker et al. (2015) and, for the positive electrode, O'Kane et al.
+# (2022) after Cabanero et al. I have not re-read those tables, and that is
+# listed as a gap in the pull request.
+
+parameters:
+
+  # --- Published cell geometry and inventory (Chen2020 / OKane2022) ---
+
+  electrode_height_m:
+    value: 0.065
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "LG M50 unrolled-electrode height in the Chen2020 parameter set, as shipped in PyBaMM 25.8.0 OKane2022. https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/OKane2022.py"
+
+  electrode_width_m:
+    value: 1.58
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "LG M50 unrolled-electrode width in the same parameter set."
+
+  negative_electrode_thickness_m:
+    value: 8.52e-5
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Graphite electrode thickness, Chen2020 / PyBaMM OKane2022."
+
+  separator_thickness_m:
+    value: 1.2e-5
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Separator thickness, Chen2020 / PyBaMM OKane2022."
+
+  positive_electrode_thickness_m:
+    value: 7.56e-5
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "NMC electrode thickness, Chen2020 / PyBaMM OKane2022."
+
+  negative_particle_radius_m:
+    value: 5.86e-6
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Representative graphite particle radius, Chen2020 / PyBaMM OKane2022."
+
+  positive_particle_radius_m:
+    value: 5.22e-6
+    unit: m
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Representative NMC particle radius, Chen2020 / PyBaMM OKane2022."
+
+  negative_electrolyte_porosity:
+    value: 0.25
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Electrolyte volume fraction in the negative electrode. In this parameter set the active-material fraction plus this porosity is 1, so binder is not given its own volume."
+
+  separator_porosity:
+    value: 0.47
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Separator porosity, Chen2020 / PyBaMM OKane2022."
+
+  positive_electrolyte_porosity:
+    value: 0.335
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Electrolyte volume fraction in the positive electrode, Chen2020 / PyBaMM OKane2022."
+
+  negative_active_volume_fraction:
+    value: 0.75
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Graphite active-material volume fraction, Chen2020 / PyBaMM OKane2022."
+
+  positive_active_volume_fraction:
+    value: 0.665
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "NMC active-material volume fraction, Chen2020 / PyBaMM OKane2022."
+
+  bruggeman_coefficient:
+    value: 1.5
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Bruggeman exponent used by this parameter set for electrolyte transport in porous media. It is an estimate of how pores reduce conductivity, not a constant we derived."
+
+  maximum_concentration_negative_mol_m3:
+    value: 33133.0
+    unit: mol/m3
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Maximum lithium concentration in the graphite, Chen2020 / PyBaMM OKane2022."
+
+  maximum_concentration_positive_mol_m3:
+    value: 63104.0
+    unit: mol/m3
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Maximum lithium concentration in the NMC, Chen2020 / PyBaMM OKane2022."
+
+  initial_concentration_negative_mol_m3:
+    value: 29866.0
+    unit: mol/m3
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Published initial graphite concentration. It sits near a full cell (stoichiometry about 0.90) and is the start of the discharge curves."
+
+  initial_concentration_positive_mol_m3:
+    value: 17038.0
+    unit: mol/m3
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Published initial NMC concentration, the pair of the graphite value above."
+
+  electrolyte_concentration_mol_m3:
+    value: 1000.0
+    unit: mol/m3
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Initial electrolyte concentration. Our single-particle model holds it uniform. The Doyle-Fuller-Newman cross-check does not."
+
+  nominal_capacity_Ah:
+    value: 5.0
+    unit: Ah
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "LG M50 nameplate capacity in the parameter set. C-rate is defined from this, which is the usual definition (1C empties the nameplate capacity in one hour)."
+
+  lower_voltage_cutoff_V:
+    value: 2.5
+    unit: V
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Lower cut-off of the Chen2020 / OKane2022 parameter set. Discharge stops here."
+
+  upper_voltage_cutoff_V:
+    value: 4.2
+    unit: V
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Upper cut-off of the parameter set. Constant-current charges stop here. This is also the usual full-cell voltage for this chemistry; it is the parameter set's limit, not a number taken from anywhere else."
+
+  charge_transfer_coefficient:
+    value: 0.5
+    unit: "1"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Symmetric Butler-Volmer transfer coefficient used for intercalation in this parameter set."
+
+  reference_temperature_K:
+    value: 298.15
+    unit: K
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Temperature at which the reference diffusivities and rate constants are quoted (25 C)."
+
+  # --- Kinetics: reference values and Arrhenius energies ---
+
+  diffusivity_reference_negative_m2_s:
+    value: 3.3e-14
+    unit: m2/s
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Graphite diffusivity at the reference temperature, Chen2020. Treated as independent of stoichiometry, which is what that parameterisation does."
+
+  activation_energy_diffusion_negative_J_mol:
+    value: 30300.0
+    unit: J/mol
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/Chen2020.py"
+    note: "Arrhenius energy in PyBaMM's graphite diffusivity function. The function comment says Chen et al. did not give it and that the value is taken from Ecker et al. (2015), https://doi.org/10.1149/2.0551509jes. I have not re-read Ecker to confirm the digit. The test checks our Arrhenius factor against PyBaMM's function."
+
+  diffusivity_reference_positive_m2_s:
+    value: 4.0e-15
+    unit: m2/s
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "NMC diffusivity at the reference temperature, Chen2020."
+
+  activation_energy_diffusion_positive_J_mol:
+    value: 25000.0
+    unit: J/mol
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/OKane2022.py"
+    note: "Arrhenius energy in PyBaMM's NMC diffusivity function. The function comment attributes it to O'Kane et al. (2022) after Cabanero et al. (2018). I have not re-read Cabanero. The test checks our factor against PyBaMM."
+
+  exchange_current_reference_negative:
+    value: 6.48e-7
+    unit: "A/m2 (m3/mol)^1.5"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "Graphite exchange-current prefactor m_ref in Chen2020, including the reference concentrations, so that j0 = m_ref * Arrhenius * sqrt(c_e * c_s * (c_max - c_s))."
+
+  activation_energy_kinetics_negative_J_mol:
+    value: 35000.0
+    unit: J/mol
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/Chen2020.py"
+    note: "Arrhenius energy on the graphite exchange current in PyBaMM's Chen2020 function. Checked against that function by the test."
+
+  exchange_current_reference_positive:
+    value: 3.42e-6
+    unit: "A/m2 (m3/mol)^1.5"
+    source: "https://doi.org/10.1149/1945-7111/ab9050"
+    note: "NMC exchange-current prefactor m_ref in Chen2020."
+
+  activation_energy_kinetics_positive_J_mol:
+    value: 17800.0
+    unit: J/mol
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/Chen2020.py"
+    note: "Arrhenius energy on the NMC exchange current in PyBaMM's Chen2020 function."
+
+  plating_rate_constant_m_s:
+    value: 1.0e-9
+    unit: m/s
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "Lithium plating kinetic rate constant in the OKane2022 parameter set. PyBaMM's irreversible plating model uses it. Our 0 V criterion does not: once the anode potential would cross 0 V vs Li/Li+, the excess current plates. The constant is recorded so the cross-check can be traced. PyBaMM's own note says these degradation parameters were fitting values, not a claim about a particular cell."
+
+  plating_transfer_coefficient:
+    value: 0.65
+    unit: "1"
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "Cathodic transfer coefficient for plating in OKane2022. Used by PyBaMM's Butler-Volmer plating model, not by our 0 V criterion."
+
+  # Nyman, Behm and Lindbergh, Electrochimica Acta 53 (2008) 6356-6365, as
+  # coded in PyBaMM with an Arrhenius factor the file attributes to Ecker.
+  electrolyte_conductivity_cubic_coeff:
+    value: 0.1297
+    unit: "S/m"
+    source: "https://doi.org/10.1016/j.electacta.2008.04.023"
+    note: "Coefficient of (c_e/1000 mol/L)^3 in the Nyman2008 conductivity fit used by PyBaMM. Conductivity (S/m) = a*c^3 + b*c^1.5 + d*c, with c = c_e/1000."
+
+  electrolyte_conductivity_three_halves_coeff:
+    value: -2.51
+    unit: "S/m"
+    source: "https://doi.org/10.1016/j.electacta.2008.04.023"
+    note: "Coefficient of (c_e/1000)^1.5 in the same Nyman2008 fit."
+
+  electrolyte_conductivity_linear_coeff:
+    value: 3.329
+    unit: "S/m"
+    source: "https://doi.org/10.1016/j.electacta.2008.04.023"
+    note: "Coefficient of (c_e/1000) in the same Nyman2008 fit."
+
+  activation_energy_conductivity_J_mol:
+    value: 17000.0
+    unit: J/mol
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/OKane2022.py"
+    note: "Arrhenius energy PyBaMM applies to the Nyman conductivity because Nyman et al. did not give a temperature dependence. The file comment attributes it to Ecker et al. (2015). Not re-read in Ecker. Checked against PyBaMM's function."
+
+  # Chen2020 closed-form open-circuit potentials. OKane2022's parameter file
+  # replaces the graphite one with a CSV interpolant of the same electrode.
+  # We use the closed form so every coefficient is visible. The cross-check
+  # uses PyBaMM's interpolant, and the small difference is part of the gap
+  # between the two curves.
+  ocp_negative_coefficients:
+    value:
+      exp_prefactor: 1.9793
+      exp_slope: -39.3631
+      constant: 0.2482
+      tanh1_prefactor: -0.0909
+      tanh1_slope: 29.8538
+      tanh1_centre: 0.1234
+      tanh2_prefactor: -0.04478
+      tanh2_slope: 14.9159
+      tanh2_centre: 0.2769
+      tanh3_prefactor: -0.0205
+      tanh3_slope: 30.4444
+      tanh3_centre: 0.6103
+    unit: V
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/Chen2020.py"
+    note: "Closed-form graphite open-circuit potential versus stoichiometry from Chen et al. (2020), copied from PyBaMM's Chen2020 function. This is a fit to measured half-cell data, not the ideal Nernst equation. Paper: https://doi.org/10.1149/1945-7111/ab9050"
+
+  ocp_positive_coefficients:
+    value:
+      linear_slope: -0.8090
+      linear_intercept: 4.4875
+      tanh1_prefactor: -0.0428
+      tanh1_slope: 18.5138
+      tanh1_centre: 0.5542
+      tanh2_prefactor: -17.7326
+      tanh2_slope: 15.7890
+      tanh2_centre: 0.3117
+      tanh3_prefactor: 17.5842
+      tanh3_slope: 15.9308
+      tanh3_centre: 0.3120
+    unit: V
+    source: "https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/Chen2020.py"
+    note: "Closed-form NMC open-circuit potential versus stoichiometry from Chen et al. (2020). A fit to measured data, not an ideal Nernst equation."
+
+  # --- Numerical choices for our own integrator ---
+
+  particle_shell_count:
+    value: 8
+    unit: "1"
+    source: ASSUMPTION
+    note: "Number of finite-volume shells in each particle. Swept mentally against 16 during development; 8 resolves the surface well enough that the discharge capacity stays within a few percent of the 5 Ah nameplate. Not a physical input."
+
+  ode_relative_tolerance:
+    value: 1.0e-4
+    unit: "1"
+    source: ASSUMPTION
+    note: "Relative tolerance for solve_ivp. Swept only in the sense that tighter values did not move the plotted curves enough to see. A numerical setting, not a measured quantity."
+
+  ode_absolute_tolerance:
+    value: 1.0e-8
+    unit: "mol/m3 or mol"
+    source: ASSUMPTION
+    note: "Absolute tolerance for solve_ivp. Swept only as a numerical setting, the same way as the relative tolerance: tighter values did not move the plotted curves. Not a measured quantity."
+
+  # --- Chart A and B scenario choices ---
+
+  plating_temperatures_C:
+    value: [-20, -10, 0, 10, 25]
+    unit: C
+    source: ASSUMPTION
+    note: "Temperatures swept for the plating chart. The set spans NASA's Ingenuity low-rate charge window of -5 C to 25 C and Perseverance's -20 C lower limit, so the chart covers the range the posts discuss. Swept across these five values; not a claim that a mission charges at all of them."
+
+  plating_c_rates:
+    value: [0.5, 1.0]
+    unit: "1/h"
+    source: ASSUMPTION
+    note: "Two charge rates swept for chart A. 1C empties the nameplate capacity in one hour; 0.5C takes two hours. NASA does not publish Ingenuity's charge current in the battery presentation, so these are not that current. Swept over this pair."
+
+  discharge_temperatures_C:
+    value: [25, 0, -20]
+    unit: C
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "25 C and 0 C are the two temperatures at which NASA quotes Ingenuity beginning-of-life pack energy (44.4 Wh and 38.8 Wh). -20 C is the lower charge and discharge limit NASA states for the Perseverance rover battery in the same presentation. The curves are our LG M50 model at those temperatures, not a reconstruction of either NASA battery."
+
+  discharge_c_rate:
+    value: 1.0
+    unit: "1/h"
+    source: ASSUMPTION
+    note: "Discharge rate for chart B. Swept in development against 0.2C, where the energy drop from 25 C to 0 C is only a few percent and the voltage sag the post is about is hard to see. 1C is used so the sag is visible. It is not a published Ingenuity discharge rate."
+
+  precondition_c_rate:
+    value: 0.2
+    unit: "1/h"
+    source: ASSUMPTION
+    note: "Slow discharge at 25 C used only to define a rested, nearly-empty start for the plating charges. Swept as a choice between a slow rate (close to equilibrium) and starting from the published full concentrations. 0.2C is the slow end of that choice."
+
+  # --- Lunar night and the thermal model ---
+
+  lunar_night_duration_h:
+    value: 354.0
+    unit: h
+    source: "https://ntrs.nasa.gov/citations/20240004406"
+    note: "NASA Glenn's hibernation abstract calls this the 354-hour lunar night. The same presentation's environment slide says about 14.75 Earth days at non-polar latitudes, and 14.75 times 24 hours is 354."
+
+  psr_night_duration_h:
+    value: 125.0
+    unit: h
+    source: "https://ntrs.nasa.gov/citations/20230002802"
+    note: "NASA's Lunar Terrain Vehicle thermal paper: a stationary vehicle at the south pole could see an extended night of 125 hours. The same paper also mentions nights of at least 85 hours. 125 hours is the longer case used here."
+
+  equator_predawn_temperature_K:
+    value: 95.0
+    unit: K
+    source: "https://doi.org/10.1016/j.icarus.2016.08.012"
+    note: "Williams et al., Icarus (2017), Diviner global temperatures: equatorial surface temperature falls to about 95 K just before sunrise. Used as the heat-sink temperature for the non-polar night. The same paper gives equatorial noon as about 387 to 397 K (about 114 to 124 C); that day value is context, not a night-model input."
+
+  psr_sink_temperature_K:
+    value: 50.0
+    unit: K
+    source: "https://ntrs.nasa.gov/citations/20230002802"
+    note: "The LTV thermal paper, citing LRO, says south-pole and permanently shadowed surface temperatures can be as low as 50 K. NASA Glenn's hibernation paper uses the same 50 K figure as the cold end of the lunar night and as the temperature their cells were dwelt at. Used as the sink for the 125-hour case."
+
+  keep_warm_setpoint_C:
+    value: 0.0
+    unit: C
+    source: "https://ntrs.nasa.gov/citations/20230002802"
+    note: "The LTV paper assumes a typical battery minimum operating temperature of 0 C or -10 C, and says the battery is usually the component that sets the heater. 0 C is the warmer, more demanding of those two published assumptions. -10 C is the other published choice and is not the curve drawn."
+
+  radioisotope_heater_power_W:
+    value: 1.0
+    unit: W
+    source: "https://science.nasa.gov/planetary-science/programs/radioisotope-power-systems/thermal-radioisotope-heater-units/"
+    note: "NASA Science: a radioisotope heater unit outputs about one watt of heat from a plutonium-238 pellet, with no moving parts. 'About' is NASA's wording."
+
+  conductance_min_W_per_K:
+    value: 0.005
+    unit: W/K
+    source: ASSUMPTION
+    note: "Lower end of the insulation-conductance sweep on chart C. Swept from 0.005 to 0.2 W/K. The low end is where one 1 W heater unit roughly balances the leak of a pack held at 0 C against a 95 K sink. Not a measured spacecraft conductance."
+
+  conductance_max_W_per_K:
+    value: 0.2
+    unit: W/K
+    source: ASSUMPTION
+    note: "Upper end of the same sweep. At 0.2 W/K the hold power against a 95 K sink is a few tens of watts, which is already a heavy battery for a small lander. Swept from 0.005 to 0.2 W/K."
+
+  chart_d_conductance_W_per_K:
+    value: 0.02
+    unit: W/K
+    source: ASSUMPTION
+    note: "One point inside the chart C sweep, used for the keep-warm versus hibernate traces. Swept as a pick inside 0.005 to 0.2 W/K so that a few-kilogram battery runs out during a 354 h night. Not a measured value."
+
+  pack_specific_heat_J_per_kg_K:
+    value: 900.0
+    unit: J/(kg K)
+    source: ASSUMPTION
+    note: "Constant specific heat of the pack being kept warm. Swept from 700 to 1200 J/(kg K), the band in which published full-cell measurements cluster. Held constant down to the sink temperature, which overstates the thermal mass once the pack is cryogenic, because real solids lose heat capacity as they cool. The Chen2020 electrode material value of 700 J/(kg K) is a material property, not this whole-cell number, and is not what is used."
+
+  chart_d_pack_mass_kg:
+    value: 3.0
+    unit: kg
+    source: ASSUMPTION
+    note: "Illustrative cell mass for a small lander on chart D. Swept as a choice inside 1 to 10 kg. It is not Ingenuity (0.273 kg of cells) and not the Lunar Terrain Vehicle. NASA Glenn's hibernation slides estimate 100 to 200 kg of extra battery for that vehicle's overnight heat."
+
+  night_start_temperature_C:
+    value: 20.0
+    unit: C
+    source: ASSUMPTION
+    note: "Pack temperature at the start of the night on chart D. Swept inside 0 to 30 C. It says the pack is still near room temperature at sunset, not a measured lander."
+
+  night_start_state_of_charge:
+    value: 1.0
+    unit: "1"
+    source: ASSUMPTION
+    note: "State of charge at sunset for chart D, swept as a choice between empty and full. NASA Glenn's freeze-thaw tests were at 0, 20 and 40 percent state of charge, not 100 percent, and their slides say higher states of charge are future work. Starting full shows the heater budget; it is not the condition they demonstrated."
+
+  example_emissivity:
+    value: 0.2
+    unit: "1"
+    source: ASSUMPTION
+    note: "Effective emissivity used only to mark one radiative leak on chart C. Swept as an illustration inside 0.05 to 0.8, roughly a dull surface rather than a shiny one. Not a measured multi-layer-insulation value."
+
+  example_radiating_area_m2:
+    value: 0.1
+    unit: m2
+    source: ASSUMPTION
+    note: "Effective radiating area paired with the example emissivity. Swept inside 0.02 to 0.5 m2 so the example conductance falls inside the chart C sweep. It is an illustration of Stefan-Boltzmann linearised at the 0 C setpoint, not a lander drawing."
+
+  # --- Published numbers used only for the comparison, not as our cell ---
+
+  ingenuity_energy_25C_Wh:
+    value: 44.4
+    unit: Wh
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "NASA estimated beginning-of-life energy of Ingenuity's six-cell pack at 25 C."
+
+  ingenuity_energy_0C_Wh:
+    value: 38.8
+    unit: Wh
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "The same estimate at 0 C. 38.8/44.4 is about 12.6 percent less energy. Used as a direction and a relative-drop check only."
+
+  ingenuity_cell_mass_g:
+    value: 45.5
+    unit: g
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "Mass of one Ingenuity cell. Six of them are 273 g. Dividing the 0 C pack energy by 0.273 kg gives the cell-level specific energy used to turn heater watt-hours into a battery mass. That division is ours; NASA does not quote the specific energy."
+
+  ingenuity_cell_count:
+    value: 6
+    unit: "1"
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "Ingenuity's pack is six Sony SE US18650 VTC4 cells in series. Our simulated cell is an LG M50 parameter set, not these cells."
+
+  ingenuity_charge_window_low_C:
+    value: -5.0
+    unit: C
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "NASA: operational allowable surface temperature for low-rate charge is -5 C to 25 C. Quoted as their limit for those cells. It is not an input to the plating model."
+
+  ingenuity_charge_window_high_C:
+    value: 25.0
+    unit: C
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "Upper end of that low-rate charge window."
+
+  perseverance_temperature_low_C:
+    value: -20.0
+    unit: C
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "Perseverance rover battery: charge and discharge permitted from -20 C to +30 C. A different battery again (EaglePicher cells). Cited to show the window depends on the cell."
+
+  perseverance_temperature_high_C:
+    value: 30.0
+    unit: C
+    source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
+    note: "Upper end of the Perseverance charge and discharge window in the same presentation."
