@@ -48,6 +48,8 @@ Set `SPACE_POWER_SIMS_MODE=smoke` first if you want the short path CI uses.
 
 ## Results
 
+The figures spell the units out. A 1-hour charge is 1C, which is 5 A on this 5 Ah cell, and a 2-hour charge is half that current. Plated lithium is labelled as milliampere-hours of charge diverted into metal, with a second scale in milligrams (1 Ah ≈ 259 mg). Heater energy is in watt-hours, the heat leak in watts per °C, and chart D's surroundings are labelled in °C and in kelvin. State of charge is written in words, with 1 meaning full.
+
 | Chart | Takeaway | Post |
 |---|---|---|
 | [A](figures/A_plated_lithium.png) | Our 0 V rule is a step: C/2 plates about 125 mAh only at −20 °C, and 1C plates about 75 mAh at −10 °C but only about 33 mAh at −20 °C because that charge hits 4.2 V sooner. PyBaMM's kinetics rise smoothly and plate at every temperature. | 2 Nov 2026 |

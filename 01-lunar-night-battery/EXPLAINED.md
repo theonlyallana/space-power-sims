@@ -456,7 +456,7 @@ Nothing draws a random number. The same `params.yaml` gives the same charts. `--
 
 ### A — 2 November. Below 0 °C, charging starts to plate lithium
 
-Two panels, same vertical axis. The left is titled "Our model: off until the anode hits 0 V". The right is titled "PyBaMM: a smooth Butler-Volmer tail", PyBaMM's irreversible plating kinetics on the Doyle–Fuller–Newman model. Blue is C/2, orange is 1C. The vertical axis is milliampere-hours of metal at the moment the cell hits 4.2 V, starting from the same rested empty state.
+Two panels, same vertical axis. The left is titled "Our model: off until the anode hits 0 V". The right is titled "Cross-check: plating rises smoothly". That cross-check is PyBaMM's irreversible plating kinetics on the Doyle–Fuller–Newman model, which is a Butler–Volmer tail: small above 0 V, never quite zero. The legend does not say "C/2" and "1C" on their own. It says "2-hour charge (C/2 = 2.5 A)" and "1-hour charge (1C = 5 A)". The line under the title says what a C-rate is: 1C charges the full 5 Ah cell in one hour. The vertical axis is labelled "Lithium plated during charge (mAh of charge diverted to plating)", read at the moment the cell hits 4.2 V, from the same rested empty state. The right-hand scale is the same quantity in milligrams of lithium metal. One ampere-hour of plating is about 259 mg, from \((3600 / F) \times 6.94\) g, with \(F\) the Faraday constant.
 
 The title is about the onset. A title that said colder charging deposits more metal would be false for our 1C result: −10 °C finishes with more metal than −20 °C, because the colder charge hits 4.2 V first.
 
@@ -470,7 +470,7 @@ Takeaway: the cold-charge limit is the negative electrode potential reaching 0 V
 
 ### B — 9 November. Same charge, less energy back when the cell is cold
 
-Solid lines are our model. Dashed lines are PyBaMM, plating off. Warm is 25 °C, blue is 0 °C, green is −20 °C.
+Solid lines are our model. Dashed lines are labelled "Full cell model": PyBaMM's Doyle–Fuller–Newman model, plating off. Warm is 25 °C, blue is 0 °C, green is −20 °C. The axes say "Charge taken out (ampere-hours)" and "Cell voltage (volts)". The title states the rate in words: a 1-hour discharge, 5 A on this 5 Ah cell. The corner note gives the energy drop in watt-hours and says to compare the percentage.
 
 | | 25 °C | 0 °C | −20 °C | Drop, 0 °C vs 25 °C |
 |---|---|---|---|---|
@@ -490,7 +490,7 @@ Takeaway: cold energy loss of this kind is voltage sag. Warm the cell and it com
 
 ### C — 16 November. Halve the heat leak and you roughly halve the battery
 
-Top left: heater energy against conductance, no radioisotope heat, for a 354-hour night at a 95 K sink and a 125-hour night at a 50 K sink. Both lines are straight in energy versus \(G\), which is \(P = G \Delta T\) times a fixed duration. At the low end, 0.005 W/K, the long night needs about 315 Wh and the short night about 139 Wh. At 0.2 W/K those are about 12613 Wh and about 5579 Wh. The vertical line is the example radiative leak, \(G \approx 0.0349\) W/K.
+Top left: heater energy against the heat leak, no radioisotope heat, for a 354-hour night at a 95 K sink and a 125-hour night at a 50 K sink. The axes say watt-hours and watts per °C. A difference of one kelvin is one degree Celsius, so a watt per °C is the same number as a watt per kelvin. The legend says "354-hour night" and "125-hour shadowed night" rather than abbreviations, and the title says the 1 W heater is a radioisotope heater. Both lines are straight in energy versus the leak, which is \(P = G \Delta T\) times a fixed duration. At the low end, 0.005 W/°C, the long night needs about 315 Wh and the short night about 139 Wh. At 0.2 W/°C those are about 12613 Wh and about 5579 Wh. The vertical line is the example radiative leak, about 0.0349 W/°C.
 
 Top right: the same two leaks, converted to cell mass at 142.12 Wh/kg. The mass is on its own axes. A second vertical scale drawn on the energy panel printed its tick labels on top of the neighbouring panel. At 0.02 W/K the long-night hold is about 3.56 W, about 1261 Wh, about 8.9 kg of cells.
 
@@ -504,7 +504,7 @@ Takeaway: insulation conductance is the multiplier on the battery you have to fl
 
 One 354-hour equatorial night, \(G = 0.02\) W/K, 3 kg, specific heat 900 J/(kg·K), starting at 20 °C and full. Stored energy 426 Wh. No radioisotope heat.
 
-Keep-warm cools from 20 °C to 0 °C with the heater off, holds 0 °C until the battery is empty at about 124 h, then falls toward the sink. Hibernation never turns the heater on. Its state of charge stays 1. Both traces finish within a degree of −178 °C, which is the 95 K sink. They do not reach 50 K, because the equatorial sink in this scenario is 95 K.
+Keep-warm cools from 20 °C to 0 °C with the heater off, holds 0 °C until the battery is empty at about 124 hours, then falls toward the sink. The figure marks that moment "heater stops, 124 hours". Hibernation never turns the heater on. The lower axis is "State of charge (1 means full)", and hibernation stays at 1. Both traces finish within a degree of −178 °C. The figure labels that line "surroundings, −178 °C (95 K)". They do not reach 50 K, because the equatorial sink in this scenario is 95 K.
 
 The 3 kg pack cannot buy the whole night at this conductance. Chart C's 8.9 kg figure is what the whole-night hold costs. Hibernation arrives at the same dawn temperature with the charge still in the cells. Whether those cells then accept a charge is the question chart A is about, and NASA's dwells were not run at 100% state of charge.
 

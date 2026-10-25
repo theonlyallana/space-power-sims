@@ -44,3 +44,12 @@ def test_a_title_does_not_claim_plated_lithium_only_grows_as_it_gets_colder():
     ).read_text()
     assert "Colder charging deposits more lithium as metal" not in source
     assert "Below 0 °C, charging starts to plate lithium" in source
+    assert 'return "1C"' not in source
+    assert 'return "C/2"' not in source
+    assert "1-hour charge (1C =" in source
+    assert "2-hour charge (C/2 =" in source
+    assert "C-rate: 1C charges the full" in source
+    assert "mAh of charge diverted to plating" in source
+    assert "State of charge (1 means full)" in source
+    assert "watts per °C" in source
+    assert "Full cell model" in source

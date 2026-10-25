@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from cell import Cell, cell_from_params
-from common.constants import STEFAN_BOLTZMANN
+from common.constants import FARADAY, STEFAN_BOLTZMANN
 from common.params import Entry, require
 from common.plotting import COLOURS, apply_style, reserve_footer, save_figure
 from common.units import celsius_to_kelvin, watt_hours_to_joules
@@ -36,12 +36,23 @@ TEMPERATURE_COLOURS = {
 }
 
 
-def _rate_label(c_rate: float) -> str:
+# Conventional atomic weight of lithium, three figures. Grams per ampere-hour
+# is (3600 C/Ah) / Faraday (C/mol) × this mass. One mAh is the same number of
+# milligrams, so the right-hand scale on chart A is the left-hand scale times
+# this factor.
+LITHIUM_MOLAR_MASS_G_PER_MOL = 6.94
+LITHIUM_MG_PER_MAH = 3600.0 / FARADAY * LITHIUM_MOLAR_MASS_G_PER_MOL
+
+
+def _rate_label(c_rate: float, capacity_Ah: float) -> str:
+    """Plain-language legend. 1C on a 5 Ah cell is a 5 A, one-hour charge."""
+    current_A = c_rate * capacity_Ah
     if abs(c_rate - 0.5) < 1e-9:
-        return "C/2"
+        return f"2-hour charge (C/2 = {current_A:g} A)"
     if abs(c_rate - 1.0) < 1e-9:
-        return "1C"
-    return f"{c_rate:g}C"
+        return f"1-hour charge (1C = {current_A:g} A)"
+    hours = 1.0 / c_rate
+    return f"{hours:g}-hour charge ({current_A:g} A)"
 
 
 def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict:
@@ -101,15 +112,16 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     rate_colours = {0.5: COLOURS["mid"], 1.0: COLOURS["warm"]}
     apply_style()
-    # Wide enough that 140 dpi is about 1300 px, the size a LinkedIn post shows.
-    figure, axes = plt.subplots(1, 2, figsize=(9.2, 5.15), sharey=True, layout="constrained")
+    # Wide enough that 140 dpi is about 1400 px, and tall enough for the
+    # two-line axis name plus the caption under the title.
+    figure, axes = plt.subplots(1, 2, figsize=(10.4, 6.3), sharey=True, layout="constrained")
     for axis, rows, title in (
         (axes[0], ours, "Our model: off until the anode hits 0 V"),
-        (axes[1], pybamm_rows or ours, "PyBaMM: a smooth Butler-Volmer tail"),
+        (axes[1], pybamm_rows or ours, "Cross-check: plating rises smoothly"),
     ):
         if axis is axes[1] and smoke:
-            axis.set_title("PyBaMM cross-check skipped in smoke mode")
-            axis.text(0.5, 0.5, "smoke mode", ha="center", va="center", transform=axis.transAxes)
+            axis.set_title("Cross-check skipped in the short test run")
+            axis.text(0.5, 0.5, "short test run", ha="center", va="center", transform=axis.transAxes)
             continue
         for rate in rates:
             subset = [row for row in rows if row["rate"] == rate]
@@ -118,14 +130,30 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
                 [row["plated_mAh"] for row in subset],
                 marker="o",
                 color=rate_colours.get(rate, COLOURS["ink"]),
-                label=_rate_label(rate),
+                label=_rate_label(rate, cell.nominal_capacity_Ah),
             )
         axis.set_xlabel("Charging temperature (°C)")
         axis.set_title(title, fontsize=11)
-        axis.legend(frameon=False)
+        axis.legend(frameon=False, fontsize=9, loc="upper right")
         axis.set_ylim(bottom=0.0)
-    axes[0].set_ylabel("Plated lithium at 4.2 V (mAh)")
-    figure.suptitle("Below 0 °C, charging starts to plate lithium", fontsize=14)
+    axes[0].set_ylabel("Lithium plated during charge\n(mAh of charge diverted to plating)")
+    # Same numbers, in milligrams of metal. 1 mAh ↔ LITHIUM_MG_PER_MAH mg.
+    metal = axes[1].secondary_yaxis(
+        "right",
+        functions=(
+            lambda milliamp_hours: milliamp_hours * LITHIUM_MG_PER_MAH,
+            lambda milligrams: milligrams / LITHIUM_MG_PER_MAH,
+        ),
+    )
+    metal.set_ylabel("Lithium metal (mg)")
+    metal.spines["top"].set_visible(False)
+    nameplate = cell.nominal_capacity_Ah
+    figure.suptitle(
+        "Below 0 °C, charging starts to plate lithium\n"
+        f"C-rate: 1C charges the full {nameplate:.0f} Ah cell in one hour.\n"
+        f"1 Ah of plating ≈ {LITHIUM_MG_PER_MAH * 1000:.0f} mg of lithium.",
+        fontsize=13,
+    )
     reserve_footer(figure)
     save_figure(figure, out / "A_plated_lithium.png")
     return {
@@ -145,7 +173,7 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     ours = []
     apply_style()
-    figure, axis = plt.subplots(figsize=(8.6, 5.5), layout="constrained")
+    figure, axis = plt.subplots(figsize=(9.2, 6.2), layout="constrained")
     for temperature_C in temperatures:
         result = simulate(
             cell,
@@ -188,7 +216,7 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
                 curve.voltage_V,
                 color=TEMPERATURE_COLOURS.get(temperature_C, COLOURS["ink"]),
                 linestyle="--",
-                label=f"PyBaMM DFN, {temperature_C:.0f} °C",
+                label=f"Full cell model, {temperature_C:.0f} °C",
             )
             pybamm_rows.append(
                 {
@@ -204,25 +232,29 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
     ingenuity_warm = float(require(book, "ingenuity_energy_25C_Wh").value)
     ingenuity_cold = float(require(book, "ingenuity_energy_0C_Wh").value)
     ingenuity_drop = (ingenuity_warm - ingenuity_cold) / ingenuity_warm
-    axis.set_xlabel("Capacity discharged (Ah)")
-    axis.set_ylabel("Cell voltage (V)")
-    axis.set_title("Same charge, less energy back when the cell is cold")
-    axis.legend(frameon=False, fontsize=8, loc="lower left")
+    current_A = rate * cell.nominal_capacity_Ah
+    axis.set_xlabel("Charge taken out (ampere-hours)")
+    axis.set_ylabel("Cell voltage (volts)")
+    axis.set_title(
+        f"Same charge, less energy back when the cell is cold\n"
+        f"1-hour discharge ({current_A:.0f} A on this {cell.nominal_capacity_Ah:.0f} Ah cell)"
+    )
+    axis.legend(frameon=False, fontsize=9, loc="lower left")
     pybamm_drop = None
     if pybamm_rows:
         py_warm = next(row["energy_Wh"] for row in pybamm_rows if row["temperature_C"] == 25.0)
         py_cold = next(row["energy_Wh"] for row in pybamm_rows if row["temperature_C"] == 0.0)
         pybamm_drop = (py_warm - py_cold) / py_warm
-    drop_line = f"Our model, 1C: {drop * 100:.1f}% less at 0 °C than at 25 °C"
+    drop_line = f"Our model: {drop * 100:.1f}% less energy at 0 °C than at 25 °C"
     if pybamm_drop is not None:
-        drop_line += f"\nPyBaMM DFN: {pybamm_drop * 100:.1f}% less over the same step"
+        drop_line += f"\nFull cell model: {pybamm_drop * 100:.1f}% less over the same step"
     axis.text(
         0.98,
         0.98,
         (
             f"{drop_line}\n"
-            f"Ingenuity's pack, a different cell: {ingenuity_drop * 100:.1f}% "
-            f"({ingenuity_cold:.1f} / {ingenuity_warm:.1f} Wh)\n"
+            f"Ingenuity's pack, a different battery: {ingenuity_drop * 100:.1f}%\n"
+            f"({ingenuity_cold:.1f} / {ingenuity_warm:.1f} watt-hours)\n"
             "Compare the percentage, not the watt-hours."
         ),
         transform=axis.transAxes,
@@ -271,16 +303,16 @@ def figure_c(book: dict[str, Entry], out: Path) -> dict:
     # labels on top of the next panel. Mass gets its own axes. The bottom
     # panel is the corner where one watt is visible; on the full-scale plot
     # that watt is a few percent of the leak.
-    figure = plt.figure(figsize=(9.4, 7.8), layout="constrained")
+    figure = plt.figure(figsize=(10.2, 8.6), layout="constrained")
     grid = figure.add_gridspec(2, 2)
     ax_energy = figure.add_subplot(grid[0, 0])
     ax_mass = figure.add_subplot(grid[0, 1])
     ax_zoom = figure.add_subplot(grid[1, :])
     short_labels = {
-        "354 h night, no RHU": "354 h, no RHU",
-        "354 h night, one 1 W RHU": "354 h, one 1 W RHU",
-        "125 h PSR night, no RHU": "125 h, no RHU",
-        "125 h PSR night, one 1 W RHU": "125 h, one 1 W RHU",
+        "354 h night, no RHU": "354-hour night",
+        "354 h night, one 1 W RHU": "354-hour night + 1 W heater",
+        "125 h PSR night, no RHU": "125-hour shadowed night",
+        "125 h PSR night, one 1 W RHU": "125-hour night + 1 W heater",
     }
     for label, sink, hours, radioisotope, colour, style in cases:
         energy = np.array(
@@ -311,21 +343,26 @@ def figure_c(book: dict[str, Entry], out: Path) -> dict:
         equator,
     )
     for axis in (ax_energy, ax_mass):
-        axis.axvline(example_g, color=COLOURS["second"], linewidth=1.2, label="Example radiation")
-        axis.set_xlabel("Insulation conductance G (W/K)")
-        axis.legend(frameon=False, fontsize=8, loc="upper left")
-    ax_energy.set_ylabel("Heater energy over the night (Wh)")
+        axis.axvline(example_g, color=COLOURS["second"], linewidth=1.2, label="Example, by radiation")
+        axis.set_xlabel("Heat leak (watts per °C)")
+        axis.legend(frameon=False, fontsize=9, loc="upper left")
+    ax_energy.set_ylabel("Heater energy for the night (watt-hours)")
     ax_energy.set_title("Energy tracks the leak")
-    ax_mass.set_ylabel("Cell mass to store it (kg)")
+    ax_mass.set_ylabel("Cells to store that energy (kg)")
     ax_mass.set_title("Same leak, as cell mass")
     zoom_index = int(np.argmax(conductances >= 0.04))
     ax_zoom.set_xlim(float(conductances[0]), 0.04)
     ax_zoom.set_ylim(0.0, series["354 h night, no RHU"]["heater_Wh"][zoom_index] * 1.15)
-    ax_zoom.set_xlabel("Insulation conductance G (W/K)")
-    ax_zoom.set_ylabel("Heater energy over the night (Wh)")
+    ax_zoom.set_xlabel("Heat leak (watts per °C)")
+    ax_zoom.set_ylabel("Heater energy for the night (watt-hours)")
     ax_zoom.set_title("Where one 1 W radioisotope heater is enough")
-    ax_zoom.legend(frameon=False, fontsize=8, loc="upper left", ncol=2)
-    figure.suptitle("Halve the heat leak and you roughly halve the battery", fontsize=14)
+    ax_zoom.legend(frameon=False, fontsize=9, loc="upper left", ncol=2)
+    figure.suptitle(
+        "Halve the heat leak and you roughly halve the battery\n"
+        "Watt-hours are energy. A watt per °C is the same step as a watt per kelvin.\n"
+        "“1 W heater” is a radioisotope heater. The 125-hour night is a shadowed crater.",
+        fontsize=12,
+    )
     reserve_footer(figure)
     save_figure(figure, out / "C_heater_energy.png")
     return {
@@ -367,7 +404,7 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     hibernate = simulate_night(strategy="hibernate", **common)
 
     apply_style()
-    figure, axes = plt.subplots(2, 1, figsize=(8.6, 6.6), sharex=True, layout="constrained")
+    figure, axes = plt.subplots(2, 1, figsize=(8.8, 6.8), sharex=True, layout="constrained")
     axes[0].plot(keep.time_h, keep.temperature_C, color=COLOURS["warm"], label="Keep warm")
     axes[0].plot(hibernate.time_h, hibernate.temperature_C, color=COLOURS["mid"], label="Hibernate")
     axes[0].axhline(0.0, color=COLOURS["muted"], linewidth=0.8, linestyle=":")
@@ -376,8 +413,8 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     axes[0].set_title("A small pack that heats itself can still freeze")
     axes[1].plot(keep.time_h, keep.state_of_charge, color=COLOURS["warm"], label="Keep warm")
     axes[1].plot(hibernate.time_h, hibernate.state_of_charge, color=COLOURS["mid"], label="Hibernate")
-    axes[1].set_ylabel("State of charge")
-    axes[1].set_xlabel("Hours into a 354 h lunar night")
+    axes[1].set_ylabel("State of charge (1 means full)")
+    axes[1].set_xlabel("Hours into a 354-hour lunar night")
     axes[1].set_ylim(-0.05, 1.05)
     axes[1].legend(frameon=False, loc="center right")
     empty_index = int(np.argmax(keep.state_of_charge <= 1e-3))
@@ -385,7 +422,7 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     # The label sits in the open part of the panel, under the 0 °C line.
     # Putting it above the axes lands it on the title.
     axes[0].annotate(
-        f"heater stops, {empty_hour:.0f} h",
+        f"heater stops, {empty_hour:.0f} hours",
         xy=(empty_hour, 0.0),
         xytext=(empty_hour + 55, -48),
         fontsize=9,
@@ -397,7 +434,7 @@ def figure_d(book: dict[str, Entry], out: Path, specific_energy: float) -> dict:
     axes[0].text(
         354,
         sink_C + 8,
-        "sink, 95 K",
+        f"surroundings, {sink_C:.0f} °C ({sink:.0f} K)",
         ha="right",
         va="bottom",
         fontsize=8,
