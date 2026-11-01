@@ -2,12 +2,16 @@
 
 from pathlib import Path
 
-FIGURES = Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "figures"
+FIGURES = Path(__file__).resolve().parents[1] / "lunar_power" / "figures"
 EXPECTED = (
     "A_plated_lithium.png",
     "B_discharge_curves.png",
     "C_heater_energy.png",
     "D_keep_warm_vs_hibernate.png",
+    "E_sixteen_cycles_a_day.png",
+    "F_sei_growth.png",
+    "G_radiation_concept.png",
+    "H_fade_three_depths.png",
 )
 
 

@@ -28,7 +28,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from cell import Cell
+from lunar_power.electrochemistry.cell import Cell
 from common.constants import FARADAY, GAS
 from common.units import trapz
 

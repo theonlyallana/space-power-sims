@@ -1,0 +1,322 @@
+{
+  "layers": [
+    "thermal",
+    "electrochemistry",
+    "ageing"
+  ],
+  "A": {
+    "empty_negative_mol_m3": 1082.3859648989217,
+    "empty_positive_mol_m3": 53622.97308435717,
+    "ours": [
+      {
+        "rate": 0.5,
+        "temperature_C": -20.0,
+        "plated_mAh": 125.07550214521527,
+        "throughput_Ah": 2.134705000819905,
+        "anode_min_V": 0.0
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": -10.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 2.850195760847186,
+        "anode_min_V": 0.009417310778945904
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 0.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 3.316366746998281,
+        "anode_min_V": 0.0028732641638886426
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 10.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 3.718014020902549,
+        "anode_min_V": 0.012111189655550766
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 25.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 4.436043684360805,
+        "anode_min_V": 0.0342796750668682
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": -20.0,
+        "plated_mAh": 33.02111431296399,
+        "throughput_Ah": 0.922935862105819,
+        "anode_min_V": 0.0
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": -10.0,
+        "plated_mAh": 75.06006609039868,
+        "throughput_Ah": 1.5916384601063045,
+        "anode_min_V": 0.0
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 0.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 2.284461089309802,
+        "anode_min_V": 0.0025980899132422063
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 10.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 2.9502136141090993,
+        "anode_min_V": 0.020037510410241578
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 25.0,
+        "plated_mAh": 0.0,
+        "throughput_Ah": 3.513777958633073,
+        "anode_min_V": 0.014285497956071438
+      }
+    ],
+    "pybamm": [
+      {
+        "rate": 0.5,
+        "temperature_C": -20.0,
+        "plated_mAh": 128.53950727923012,
+        "throughput_Ah": 2.0850222115891266
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": -10.0,
+        "plated_mAh": 120.73884711955513,
+        "throughput_Ah": 2.7870982997277673
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 0.0,
+        "plated_mAh": 98.65474334458804,
+        "throughput_Ah": 3.3406873461637017
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 10.0,
+        "plated_mAh": 77.08493904722025,
+        "throughput_Ah": 3.7268804942408753
+      },
+      {
+        "rate": 0.5,
+        "temperature_C": 25.0,
+        "plated_mAh": 67.43336274060947,
+        "throughput_Ah": 4.382174714587075
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": -20.0,
+        "plated_mAh": 78.19586426654178,
+        "throughput_Ah": 0.786641110343749
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": -10.0,
+        "plated_mAh": 60.03899021915154,
+        "throughput_Ah": 1.4271264244164226
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 0.0,
+        "plated_mAh": 52.87274759437574,
+        "throughput_Ah": 2.156902303815146
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 10.0,
+        "plated_mAh": 49.26606502940407,
+        "throughput_Ah": 2.7959622777072055
+      },
+      {
+        "rate": 1.0,
+        "temperature_C": 25.0,
+        "plated_mAh": 36.793509231185446,
+        "throughput_Ah": 3.489401360152824
+      }
+    ]
+  },
+  "B": {
+    "ours": [
+      {
+        "temperature_C": 25.0,
+        "energy_Wh": 17.299517309210657,
+        "capacity_Ah": 4.938853313769287
+      },
+      {
+        "temperature_C": 0.0,
+        "energy_Wh": 15.476051285887532,
+        "capacity_Ah": 4.657172819020481
+      },
+      {
+        "temperature_C": -20.0,
+        "energy_Wh": 10.215368632448667,
+        "capacity_Ah": 3.2122066059991687
+      }
+    ],
+    "pybamm": [
+      {
+        "temperature_C": 25.0,
+        "energy_Wh": 17.223927265783978,
+        "capacity_Ah": 4.9219634585092695
+      },
+      {
+        "temperature_C": 0.0,
+        "energy_Wh": 15.265016128527126,
+        "capacity_Ah": 4.625793825565519
+      },
+      {
+        "temperature_C": -20.0,
+        "energy_Wh": 3.5119792151298594,
+        "capacity_Ah": 1.0735201020635983
+      }
+    ],
+    "relative_drop": 0.10540560125063546,
+    "pybamm_relative_drop": 0.11373196757212899,
+    "ingenuity_relative_drop": 0.12612612612612617
+  },
+  "C": {
+    "specific_energy_Wh_per_kg": 142.1245421245421,
+    "example_radiative_conductance_W_per_K": 0.03491880627523874,
+    "stefan_boltzmann": 5.670374419e-08,
+    "series_endpoints": {
+      "354 h night, no RHU": {
+        "heater_Wh_at_min_G": 315.3254999999999,
+        "heater_Wh_at_max_G": 12613.019999999999
+      },
+      "354 h night, one 1 W RHU": {
+        "heater_Wh_at_min_G": 0.0,
+        "heater_Wh_at_max_G": 12259.019999999999
+      },
+      "125 h PSR night, no RHU": {
+        "heater_Wh_at_min_G": 139.46874999999997,
+        "heater_Wh_at_max_G": 5578.749999999999
+      },
+      "125 h PSR night, one 1 W RHU": {
+        "heater_Wh_at_min_G": 14.468749999999975,
+        "heater_Wh_at_max_G": 5453.749999999999
+      }
+    }
+  },
+  "D": {
+    "stored_Wh": 426.3736263736263,
+    "keep_warm_heater_Wh": 426.37362637381807,
+    "keep_warm_final_soc": 0.0,
+    "keep_warm_final_C": -177.7670494145491,
+    "hibernate_final_soc": 1.0,
+    "hibernate_final_C": -178.13424872414504,
+    "keep_warm_empty_h": 123.65696999960635,
+    "conductance_W_per_K": 0.02,
+    "mass_kg": 3.0
+  },
+  "E": {
+    "orbit_period_min": 90.0,
+    "charge_min": 55.0,
+    "discharge_min": 35.0,
+    "depth_of_discharge": 0.4,
+    "cycles_per_earth_day": 16.0,
+    "days_to_cycle_goal": 1875.0,
+    "cycle_goal": 30000.0,
+    "cycles_reported": 12000.0,
+    "charge_current_A": 2.181818181818182,
+    "discharge_current_A": 3.4285714285714284,
+    "capacity_Ah": 5.0,
+    "lunar_day_h": 708.0,
+    "lunar_day_earth_days": 29.5,
+    "sol_earth_days": 1.02749125,
+    "cycles_per_earth_day_once": 1.0
+  },
+  "F": {
+    "end_of_window": {
+      "25.0": {
+        "thickness_nm": 36.53481285568601,
+        "loss_mAh": 29.62455780386523
+      },
+      "0.0": {
+        "thickness_nm": 18.62868184121219,
+        "loss_mAh": 12.803109846985516
+      }
+    },
+    "window_days": 120.0
+  },
+  "G": {
+    "multipliers": [
+      1.0,
+      2.0,
+      5.0
+    ],
+    "doses_Mrad": {
+      "mission_context_Mrad": 4.0,
+      "experiment_upper_Mrad": 25.0
+    },
+    "applied_to_fade": false
+  },
+  "H": {
+    "dod_shallow": {
+      "depth_of_discharge": 0.2,
+      "remaining_at_5_years": 0.8955598595720555,
+      "remaining_at_15_years": 0.6906648382097471,
+      "loss_Ah_at_5_years": 0.5222007021397224
+    },
+    "dod_leo": {
+      "depth_of_discharge": 0.4,
+      "remaining_at_5_years": 0.7683598849779844,
+      "remaining_at_15_years": 0.30654725034348074,
+      "loss_Ah_at_5_years": 1.1582005751100783
+    },
+    "dod_rover": {
+      "depth_of_discharge": 0.6,
+      "remaining_at_5_years": 0.6107084037821797,
+      "remaining_at_15_years": 0.0,
+      "loss_Ah_at_5_years": 1.9464579810891012
+    },
+    "rover_one_per_sol": {
+      "remaining_at_contact": 0.7831865737867498,
+      "contact_years": 14.377844705681039,
+      "design_years": 0.2531805954825462
+    },
+    "film_only_remaining_at_15_years": 0.9549843200352811,
+    "diffusivity_multiplier": 1.0
+  },
+  "scenario": {
+    "layers": [
+      "thermal",
+      "electrochemistry",
+      "ageing"
+    ],
+    "ageing": {
+      "time_s": 31557600.0,
+      "thickness_grown_m": 8.143590226488247e-09,
+      "capacity_lost_Ah": 0.23457530583993128,
+      "remaining_fraction": 0.9530849388320137,
+      "lithium_lost_mol": 0.008752326210045274,
+      "diffusivity_multiplier": 1.0,
+      "depth_of_discharge": 0.4
+    },
+    "discharges": {
+      "25.0": {
+        "energy_Wh": 16.528464823424258,
+        "capacity_Ah": 4.710668456686607,
+        "ohmic_ohm": 0.011864509690595324
+      },
+      "0.0": {
+        "energy_Wh": 14.780148231099135,
+        "capacity_Ah": 4.4405939160308305,
+        "ohmic_ohm": 0.021801358709263023
+      }
+    },
+    "night": {
+      "stored_Wh": 406.37028161189147,
+      "remaining_fraction": 0.9530849388320137,
+      "heater_Wh": 406.37028161407085,
+      "final_soc": 1.500644564586047e-17
+    },
+    "initial_negative_mol_m3": 28532.31829339519
+  }
+}

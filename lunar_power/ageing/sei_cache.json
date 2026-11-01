@@ -1,0 +1,73 @@
+{
+  "model": "SPM",
+  "sei_option": "solvent-diffusion limited",
+  "parameter_set": "OKane2022",
+  "pybamm": "25.8.0",
+  "experiment": "Rest",
+  "points": [
+    {
+      "temperature_K": 273.15,
+      "hours": 1.0,
+      "time_s": 3600.0,
+      "thickness_m": 5.011165001117192e-09,
+      "loss_mol": 3.9134662618956037e-07,
+      "loss_Ah": 1.0488669222761746e-05
+    },
+    {
+      "temperature_K": 273.15,
+      "hours": 4.0,
+      "time_s": 14400.0,
+      "thickness_m": 5.044464228568365e-09,
+      "loss_mol": 1.5585243255873433e-06,
+      "loss_Ah": 4.177076032538772e-05
+    },
+    {
+      "temperature_K": 273.15,
+      "hours": 24.0,
+      "time_s": 86400.0,
+      "thickness_m": 5.260200371924579e-09,
+      "loss_mol": 9.120333855513351e-06,
+      "loss_Ah": 0.0002444384558595806
+    },
+    {
+      "temperature_K": 273.15,
+      "hours": 72.0,
+      "time_s": 259200.0,
+      "thickness_m": 5.7457421999115135e-09,
+      "loss_mol": 2.6139154925226024e-05,
+      "loss_Ah": 0.000700568067860158
+    },
+    {
+      "temperature_K": 298.15,
+      "hours": 1.0,
+      "time_s": 3600.0,
+      "thickness_m": 5.0452082224775595e-09,
+      "loss_mol": 1.5846022008345311e-06,
+      "loss_Ah": 4.2469686007112935e-05
+    },
+    {
+      "temperature_K": 298.15,
+      "hours": 4.0,
+      "time_s": 14400.0,
+      "thickness_m": 5.177741253384895e-09,
+      "loss_mol": 6.2300432500439e-06,
+      "loss_Ah": 0.000166974386695125
+    },
+    {
+      "temperature_K": 298.15,
+      "hours": 24.0,
+      "time_s": 86400.0,
+      "thickness_m": 5.991961043550882e-09,
+      "loss_mol": 3.4769419512858485e-05,
+      "loss_Ah": 0.0009318719414771566
+    },
+    {
+      "temperature_K": 298.15,
+      "hours": 72.0,
+      "time_s": 259200.0,
+      "thickness_m": 7.599470867065142e-09,
+      "loss_mol": 9.111455906061087e-05,
+      "loss_Ah": 0.0024420051366473338
+    }
+  ]
+}
