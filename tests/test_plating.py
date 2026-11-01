@@ -15,14 +15,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from cell import cell_from_params
 from common.params import load_params
 from common.units import celsius_to_kelvin
-from spm import discharged_state, lithium_inventory_mol, simulate
+from lunar_power.electrochemistry.cell import cell_from_params
+from lunar_power.electrochemistry.spm import discharged_state, lithium_inventory_mol, simulate
 
-BOOK = load_params(
-    Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "params.yaml"
-)
+BOOK = load_params(Path(__file__).resolve().parents[1] / "lunar_power" / "params.yaml")
 
 
 @pytest.fixture(scope="module")

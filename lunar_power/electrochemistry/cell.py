@@ -66,6 +66,12 @@ class Cell:
     shell_grading: float
     relative_tolerance: float
     absolute_tolerance: float
+    # Ageing feed. All three stay at zero unless ``apply_fade`` has run.
+    # A zero thickness adds nothing to the ohmic drop, so a fresh cell is
+    # the November cell.
+    sei_thickness_grown_m: float = 0.0
+    sei_resistivity_ohm_m: float = 0.0
+    lithium_lost_to_sei_mol: float = 0.0
 
     @property
     def negative_surface_area_m2(self) -> float:
@@ -193,7 +199,17 @@ class Cell:
             self.separator_thickness_m / (kappa * self.separator_porosity**self.bruggeman),
             self.positive_thickness_m / (kappa * self.positive_porosity**self.bruggeman),
         )
-        return float(sum(terms) / self.area_m2)
+        resistance = float(sum(terms) / self.area_m2)
+        # Film overpotential is rho * L * j, and j = I / A_interface, so the
+        # extra series resistance is rho * L / A_interface. Zero thickness
+        # (the November cell) contributes exactly 0 and is not added.
+        if self.sei_thickness_grown_m > 0.0 and self.sei_resistivity_ohm_m > 0.0:
+            resistance += (
+                self.sei_resistivity_ohm_m
+                * self.sei_thickness_grown_m
+                / self.negative_surface_area_m2
+            )
+        return resistance
 
     def electrode_moles(self, concentration: float, active_fraction: float, thickness_m: float) -> float:
         """Lithium inventory in one electrode, moles, at a uniform concentration."""

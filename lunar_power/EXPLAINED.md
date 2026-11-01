@@ -2,9 +2,11 @@
 
 Personal project using only public data. Not affiliated with or endorsed by my employer.
 
-This note is for someone who can read Python and a conservation law, and who has not met this model before. It derives the two models, then walks through the code in the order it runs, then says how to read the four November charts. The short map is [README.md](README.md). Every digit the code uses is in [params.yaml](params.yaml) or in `common/constants.py`.
+This note is for someone who can read Python and a conservation law, and who has not met this model before. It derives the November cell and the November night, then the December ageing layer. The short map is [README.md](README.md). Every digit the code uses is in [params.yaml](params.yaml) or in `common/constants.py`.
 
-The order is fundamentals, then the cell, then the night, then the results.
+The code lives in the `lunar_power` package. `electrochemistry` and `thermal` are November. `ageing` is December. One scenario runner switches the layers. Ageing, when it is on, changes the lithium inventory and the film resistance those earlier layers use. When it is off, the November numbers are unchanged. The December chapter is at the end.
+
+The order is fundamentals, then the cell, then the night, then the November results, then ageing.
 
 ## The question
 
@@ -381,11 +383,11 @@ The threshold where one 1 W unit covers the equatorial hold is \(G (273.15 - 95)
 
 ## How the code runs
 
-`python 01-lunar-night-battery/run_all.py` is the entry point.
+`python -m lunar_power.run` is the entry point. `lunar_power/run.py` is that module.
 
-1. `run_all.main` puts the repository root and `01-lunar-night-battery/` on `sys.path`, parses `--smoke` and `--out`, and chooses the output directory. Smoke mode writes to a temporary directory and does not touch `figures/`.
-2. `common.params.load_params` reads `params.yaml`. Each entry needs `value`, `unit`, `source` and `note`. The source is an `https://` URL or the exact word `ASSUMPTION`. An assumption's note must contain "swept". `require` fetches one entry by the name the code uses, and fails with that name if it is missing.
-3. `make_figures.generate` builds the cell once, then draws A, B, C and D. Outside smoke mode it also writes `figures/summary.json`.
+1. `run.main` parses `--smoke`, `--out` and `--layers`. The default layers are `thermal,electrochemistry,ageing`. Smoke mode writes to a temporary directory and does not touch `figures/`. It still draws the December charts, because those are closed-form, and it shortens the November electrochemical cases and skips PyBaMM on charts A and B.
+2. `common.params.load_params` reads `lunar_power/params.yaml`. Each entry needs `value`, `unit`, `source` and `note`. The source is an `https://` URL or the exact word `ASSUMPTION`. An assumption's note must contain "swept". `require` fetches one entry by the name the code uses, and fails with that name if it is missing.
+3. `lunar_power.charts.november.generate` builds a fresh cell, with the ageing feed left at zero, and draws A, B, C and D. `lunar_power.charts.december.generate` draws E, F, G and H. Outside smoke mode, `run_scenario` then writes the coupled block into `figures/summary.json`.
 
 `cell_from_params` copies the book into a frozen `Cell`. There is no hidden default. Electrode area is height times width, \(0.065 \times 1.58 = 0.1027\) m².
 
@@ -411,9 +413,9 @@ Charts C and D do not touch the cell model. `steady_heater_energy_Wh` is \(P_\te
 
 `common.units` holds the 3600 J/Wh conversion and a `trapz` that calls `numpy.trapezoid` if it exists and `numpy.trapz` otherwise. NumPy 1.26, which PyBaMM 25.8 requires, only has `trapz`.
 
-`model.py` re-exports the functions a later notebook or test might import. It does not add physics.
+`lunar_power/__init__.py` exports the scenario runner. It does not add physics. The old `model.py` map is this package: `electrochemistry/cell.py`, `electrochemistry/spm.py`, `electrochemistry/pybamm_check.py`, `thermal/night.py`, `charts/november.py`.
 
-The notebook `notebook.ipynb` calls the same `generate`. If `SPACE_POWER_SIMS_MODE=smoke` it writes to a temporary directory. Otherwise it rewrites `figures/`.
+The notebook `notebook.ipynb` calls the same entry point. If `SPACE_POWER_SIMS_MODE=smoke` it writes to a temporary directory. Otherwise it rewrites `figures/`.
 
 ## Parameters
 
@@ -446,11 +448,11 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
 export PYBAMM_DISABLE_TELEMETRY=1
-python 01-lunar-night-battery/run_all.py
+python -m lunar_power.run
 pytest
 ```
 
-Nothing draws a random number. The same `params.yaml` gives the same charts. `--smoke` is the short path: fewer electrochemical cases, output in a temporary directory. The notebook obeys `SPACE_POWER_SIMS_MODE=smoke` for the same reason. CI installs the pinned stack, runs pytest, and smoke-runs `run_all.py`. It does not redraw the committed PNGs.
+Nothing in the November layers draws a random number. The same `params.yaml` gives the same charts. `--smoke` is the short path: fewer electrochemical cases, output in a temporary directory. The notebook obeys `SPACE_POWER_SIMS_MODE=smoke` for the same reason. CI installs the pinned stack, runs pytest, and smoke-runs `python -m lunar_power.run --smoke`. It does not redraw the committed PNGs.
 
 ## How to read the charts
 
@@ -585,4 +587,306 @@ Not used as quoted results, because the digit was not re-read or has no public s
 - Waldmann et al., Journal of Power Sources 262 (2014), [10.1016/j.jpowsour.2014.03.112](https://doi.org/10.1016/j.jpowsour.2014.03.112), was not read. No plating-versus-temperature threshold is quoted from it.
 - No public conductance for a generic small lander was found. \(G\), mass, specific heat, sunset temperature, sunset state of charge, emissivity and radiating area stay labelled assumptions.
 - A journal calorimetry value sometimes quoted for a commercial 18650 was not opened, so specific heat stays an assumption inside 700–1200 J/(kg·K) and that value is not cited.
-- End-of-life state of health, and a percentage for how much a graphite electrode swells when full, are not stated here. They are not inputs, and they do not have a source pinned in this folder.
+- An "80% state of health" end-of-life line is not drawn. No standard was opened for that convention, so it is not a result of this model.
+- Graphite's volume change on full lithiation is used in the December chapter, from Schweidler et al. (2018), and only there.
+
+## December: the ageing layer
+
+Personal project using only public data. Not affiliated with or endorsed by my employer.
+
+November asks whether a cell can take a charge in the cold, and what a lunar night costs in heater energy. December asks how the cell loses capacity once it is warm enough to cycle. It is the same model. The film thickness and the lithium it consumes are handed back to the November cell as a lower graphite inventory and a higher series resistance.
+
+Four posts, four charts:
+
+| Chart | Post | Question the chart answers |
+|---|---|---|
+| E | 7 December 2026 | How many cycles does a 90 minute orbit accumulate, next to one cycle a day and one cycle a lunar day? |
+| F | 14 December 2026 | Why does the surface film thicken with the square root of time, and how cold slows that? |
+| G | 21 December 2026 | Where does radiation sit, if it is not a term in the rate? |
+| H | 28 December 2026 | At three depths of discharge, what is left, and why is Opportunity's clock not an orbit? |
+
+### What is being conserved
+
+A cell stores lithium. Discharge moves it from the graphite to the positive electrode. Charge moves it back. Anything that locks lithium into a side product removes it from that shuttle. The surface film on the graphite, the solid-electrolyte interphase, is that side product. Forming it consumes lithium and a little solvent. A stable film is what lets the cell cycle. A film that keeps breaking and regrowing keeps consuming lithium.
+
+Two conservations, and one conversion between them.
+
+**Charge.** Current is charge per time. One lithium ion carries one elementary charge, so the molar rate tied to a current density \(j\) (amperes per square metre of graphite surface) is
+
+\[
+\dot n = \frac{-j}{F}
+\]
+
+when \(j\) is negative for a reduction. \(F\) is the Faraday constant, 96485.3321 C/mol, from `common/constants.py`. Integrated and converted to ampere-hours,
+
+\[
+Q_\text{loss} = \frac{n_\text{Li} F}{3600}.
+\]
+
+That is `capacity_loss_Ah`.
+
+**Mass.** Solvent diffuses through the film and is reduced at the graphite. Each mole of film has a volume \(V_\text{bar}\) (m³/mol), the partial molar volume. If \(z\) moles of lithium are locked per mole of film, a thickness increase \(\Delta L\) on one square metre locks
+
+\[
+n_\text{Li} = \frac{z\,\Delta L}{V_\text{bar}}
+\]
+
+moles. That is `lithium_per_area_mol_m2`. \(z\) in this parameter set is 1. Ploehn, Ramadass and White describe a two-electron reduction of the solvent. This model does not replace the 1 with a 2. PyBaMM's solvent-diffusion-limited option uses \(z = 1\), and the cross-check is that option. Putting in a 2 would make the cross-check a different equation. The choice is stated here so it is not hidden in the arithmetic.
+
+The initial film, 5 nm in the parameter set, is the formed cell. Its lithium is already absent from Chen's initial concentrations. Only thickness grown after \(t = 0\) is new loss.
+
+### Fick's law, and why the film goes as the square root of time
+
+Take the film as a slab of thickness \(L\). Solvent concentration is \(c\) at the outer face (the electrolyte side) and, if the reaction at the graphite is fast, about zero at the inner face. Fick's law for a linear profile and a constant diffusivity \(D\) gives the molar flux
+
+\[
+N = \frac{D\,c}{L}.
+\]
+
+PyBaMM writes the reduction current that belongs to that flux as
+
+\[
+j = -\frac{D\,c\,F}{L}
+\]
+
+and the thickness rate as
+
+\[
+\frac{dL}{dt} = -\frac{V_\text{bar}\,j}{F z} = \frac{V_\text{bar}\,D\,c}{z\,L}.
+\]
+
+Multiply through by \(L\):
+
+\[
+L\,dL = k\,dt, \qquad k = \frac{V_\text{bar}\,D\,c}{z}.
+\]
+
+Integrate from the initial thickness \(L_0\) at \(t = 0\):
+
+\[
+L(t) = \sqrt{L_0^2 + 2kt}.
+\]
+
+That is `thickness_m`. Plot \(L^2\) against \(t\) and the slope is \(2k\). Chart F's right-hand panel is that line. The left-hand panel is \(L\) itself, which rises quickly and then slows, because a thicker film is a longer diffusion path.
+
+\(D\) carries the Arrhenius factor already used in November:
+
+\[
+\frac{D(T)}{D(T_\text{ref})} = \exp\left[\frac{E_a}{R}\left(\frac{1}{T_\text{ref}} - \frac{1}{T}\right)\right].
+\]
+
+\(E_a\) is 38000 J/mol in the OKane2022 set. At 0 °C the factor is about a quarter of its value at 25 °C, so the cold curve on chart F sits under the warm one. Same function as `Cell.arrhenius`. `arrhenius_factor` and `growth_constant_m2_s` are this paragraph.
+
+O'Kane et al. (2022) use this diffusion-limited form and show that changing \(D\) by an order of magnitude moves the capacity loss more than switching from one film layer to two. Ploehn, Ramadass and White (2004) are the continuum paper that obtained the square-root thickness and checked it against storage data. Wang, Kadam, Li, Shi and Qi (2018) review the film models this sits among. The digits for \(D\), \(c\), \(V_\text{bar}\), \(z\), \(L_0\), the resistivity and \(E_a\) are the OKane2022 values shipped in PyBaMM 25.8.0. PyBaMM's own note says they were fitting values, not a claim about one commercial cell. A test compares our copies to that parameter object.
+
+### Symbols in the film model
+
+| Symbol | Code | Unit | Meaning |
+|---|---|---|---|
+| \(L\) | `thickness_m` | m | Film thickness. |
+| \(L_0\) | `SeiKnobs.initial_thickness_m` | m | Formed-film thickness, 5 nm. |
+| \(D\) | `solvent_diffusivity_m2_s` | m²/s | Solvent diffusivity in the film at the reference temperature, \(2.5 \times 10^{-22}\). |
+| \(c\) | `solvent_concentration_mol_m3` | mol/m³ | Solvent concentration at the outer face, 2636. |
+| \(V_\text{bar}\) | `partial_molar_volume_m3_mol` | m³/mol | Volume of film per mole, \(9.585 \times 10^{-5}\). |
+| \(z\) | `lithium_per_sei_mole` | 1 | Lithium moles per mole of film. 1 in this set. |
+| \(E_a\) | `activation_energy_J_mol` | J/mol | 38000. |
+| \(T_\text{ref}\) | `reference_temperature_K` | K | 298.15, shared with November. |
+| \(\rho\) | `resistivity_ohm_m` | Ω·m | 200000. Film resistance uses the grown thickness only. |
+| \(k\) | `growth_constant_m2_s` | m²/s | The constant in \(L\,dL = k\,dt\). |
+| \(A\) | `Cell.negative_surface_area_m2` | m² | Graphite particle surface. About 3.36 m² for this cell. |
+| \(Q\) | `capacity_loss_Ah` | Ah | Lithium loss, Faraday's law. |
+
+### Cycles, and why depth of discharge appears at all
+
+The diffusion law above does not know the depth of discharge. A cell on the shelf and a cell being cycled grow the same film if the only process is solvent diffusion through an intact layer. Depth of discharge enters as mechanical damage.
+
+Schweidler et al. (2018) measured a 13.2% volume expansion of graphite from empty graphite to LiC₆. Call that \(\varepsilon_\text{full} = 0.132\). A cycle that uses a depth of discharge \(\delta\) (a fraction of the nameplate, between 0 and 1) is taken to strain the particle by
+
+\[
+\varepsilon = \varepsilon_\text{full}\,\delta.
+\]
+
+The linear map is an assumption. The 13.2% is a crystal volume, not a measured thickness change of this LG M50 electrode.
+
+Elastic energy density goes as \(\varepsilon^2\). The fraction of surface that cracks on a cycle is taken to scale the same way, and to equal an assumed fraction \(f_\text{full}\) when the particle is fully lithiated:
+
+\[
+f = f_\text{full}\left(\frac{\varepsilon}{\varepsilon_\text{full}}\right)^2 = f_\text{full}\,\delta^2.
+\]
+
+`crack_area_fraction` is that line. \(f_\text{full}\) is an assumption, swept from 0.002 to 0.05. The curves are drawn at 0.02. It is not a measured crack area. The low end of the sweep is where cracking barely adds to the diffusion loss. The high end consumes a large part of the nameplate on the 16-cycle-a-day clock. Chart H's shaded band is that sweep on the 40% curve. Read the band before reading any one line as a life prediction.
+
+On the cracked fraction, a new skin has to form. Formation up to \(L_0\) is the fast step. Diffusion limits only the later thickening. Each full cycle therefore adds the lithium in a film of thickness \(L_0\) on area fraction \(f\),
+
+\[
+\Delta n_\text{rebuild} = f\,\frac{z L_0}{V_\text{bar}},
+\]
+
+plus the diffusion increment on the intact area and on the fresh patch. `_step_thickness` advances those two populations by one period. `fade_history` charges the rebuild once per completed cycle. A sample that falls inside a cycle sees diffusion only for the stub, so a rebuild is not counted twice. With \(f_\text{full} = 0\) the thickness matches the closed form. A test checks that.
+
+The nameplate stays 5 Ah. Remaining fraction is \(1 - Q_\text{loss}/Q_\text{nameplate}\), and it is not allowed to go negative. A curve that sits on zero has consumed the nameplate inventory under this assumption. It is not a cell that was integrated down to 2.5 V.
+
+### The orbit clock
+
+NASA Glenn's description of an LEO test (NTRS 20050192209) is an orbit of about 90 minutes: 55 minutes of charge in sunlight, 35 minutes of discharge in eclipse. A later status paper (NTRS 20080008855) uses the same split and a 40% depth of discharge. Dividing a civil day by 90 minutes is exactly 16. `cycles_per_earth_day` is that division. Nothing is fitted.
+
+The same 2005 note sets the goal as 5 years of life, or 30,000 cycles. 30,000 / 16 = 1,875 days, which is a bit over five calendar years. The paper treats them as one goal. The 2008 paper reports that the batteries under test had passed 12,000 cycles and were still above the failure voltage. Chart E marks 12,000. It does not mark a completed total the paper does not give.
+
+On this 5 Ah cell, 40% of the nameplate in 35 minutes is \(0.4 \times 5 / (35/60) = 3.4\) A, and the same 40% put back in 55 minutes is 2.2 A. `current_A` is ampere-hours over hours. Those currents are what this cell would need to follow the published timing. They are not the 12.5 A and 17 A of the 25 Ah batteries in the 2008 paper.
+
+A lunar day on the chart doubles the 354 hour night, so sunlit hours equal the night. The ratio is an assumption swept from 0.8 to 1.2, drawn at 1. One cycle per lunar day is then about 12 cycles a year. That line sits on the axis of chart E on purpose.
+
+### Radiation, labelled and not integrated
+
+Ratnakumar, Smart, Whitcanack, Davies, Chin, Deligiannis and Surampudi (J. Electrochem. Soc. 151, 2004, A652) irradiated aerospace lithium-ion cells to cumulative doses up to 25 Mrad. The abstract's context for Jupiter and its moons is about 4 Mrad. They report only a marginal capacity decline and no significant change in the later fade rate, and they say that study had no unirradiated control. An electric vehicle does not see that dose. This model does not turn Mrad into a capacity loss. There is no dose-to-fade equation here because I do not have one I am willing to treat as this cell's rate.
+
+Chart G draws radiation in a separate box. The assumption sweep is a set of multipliers on solvent diffusivity: 1, 2 and 5. `assumption_multipliers` returns them. `FADE_DIFFUSIVITY_MULTIPLIER` is 1. Charts E, F and H, and the feed into the cold model, use 1. A test checks that a multiplier of 2 does thicken the film faster, and that the fade summary records 1.
+
+### How ageing changes the November cell
+
+`aged_state_from_params` runs the 40% LEO duty for `feed_age_years` (an assumption, swept from 0.25 to 5 years, drawn at 1). `apply_fade` then does two things.
+
+1. **Inventory.** The lost moles are removed from the graphite concentration:
+
+\[
+\Delta c_- = \frac{n_\text{Li}}{\epsilon_\text{active}\,L_-\,A_\text{electrode}}.
+\]
+
+`Cell.initial_negative` falls by \(\Delta c_-\). The nameplate capacity is not rescaled. A 1-hour discharge is still 5 A, defined on the fresh 5 Ah, and the aged cell runs out of graphite lithium sooner. That is the capacity the cold discharge sees.
+
+2. **Resistance.** O'Kane write the film overpotential as \(\eta = \rho L j\), with \(j = I / A\). The extra series resistance is \(\rho L_\text{grown} / A\). `Cell.ohmic_resistance` adds it only when the grown thickness is positive. A fresh cell, and a state with zero growth, returns the November resistance exactly. A test checks the equality.
+
+`run_scenario` applies that cell before the discharge, and multiplies the night's stored watt-hours by the remaining fraction. Charts A to D do not go through this path. They call `cell_from_params` and leave the three new `Cell` fields at zero. The regression test recomputes the 25 °C discharge energy, the −20 °C C/2 plated milliampere-hours, and the heater-energy ends, and compares them to the November digits.
+
+### Opportunity, as a case rather than a fit
+
+NASA's end-of-mission release says Opportunity was designed to last 90 Martian days and exceeded that life by 60 times, and that the mission was almost 15 years. The end-of-mission report (NTRS 20200000214) says the last communication was on sol 5111, 10 June 2018, after more than fourteen years. 60 × 90 = 5,400 sols, which is not 5,111. Both wordings are NASA's. Chart H marks 90 sols and sol 5111. It does not replace 5111 with 5400.
+
+A mean sol is 24 hours, 39 minutes and 35.244 seconds (NASA GISS Mars24). The code adds those three parts. It does not use a rounded "1.027 days" typed in by hand.
+
+The 2004 MER battery workshop slides (NTRS 20080015793) say the depth of discharge was typically 60–70% through sol 54. The 60% curve is the lower end of that range. It is early-mission telemetry, not a depth measured on every one of the 5,111 sols. One cycle per sol is an assumption, swept from 0.5 to 1.5, drawn at 1, because those slides show a charge and a discharge against sol number. It is not a counted total for the whole mission.
+
+The dashed line is that cadence at 60% depth. The solid orange line is the same depth on the 16-cycle-a-day clock. The lesson the chart is allowed to carry: a rover that cycles about once a sol does not accumulate the crack damage of an LEO battery, so a 90 sol design can still be a full cell years later under this assumption. It is not a prediction of Opportunity's ampere-hours. Those cells are not this LG M50 parameter set. No capacity-retention number from the mission is used, because the public figures I could pin down do not include one I have read in a table.
+
+### Where each new function lives
+
+`lunar_power/ageing/orbit.py`
+
+- `cycles_per_earth_day` divides 1440 by the orbit period.
+- `earth_days_for_cycles` divides a cycle count by that rate.
+- `current_A` is depth of discharge times nameplate, divided by the duration in hours.
+- `lunar_day_hours` is the night times one plus the day-to-night ratio.
+- `sol_seconds` and `sol_in_earth_days` add the GISS parts and divide by 86400.
+- `profile_from_params` reads the book and returns the dict chart E prints.
+
+`lunar_power/ageing/sei.py`
+
+- `SeiKnobs` and `knobs_from_params` are the film digits. No defaults.
+- `arrhenius_factor` is the temperature quotient.
+- `growth_constant_m2_s` is \(k\), including an optional diffusivity multiplier.
+- `thickness_m` is the closed form.
+- `lithium_per_area_mol_m2` is \(z \Delta L / V_\text{bar}\).
+- `capacity_loss_Ah` is Faraday's law.
+- `storage_loss` is the open-circuit case: no cycles, so the closed form is the whole answer.
+
+`lunar_power/ageing/fade.py`
+
+- `crack_area_fraction` is \(f_\text{full}\delta^2\), clipped to the range 0 to 1.
+- `_step_thickness` advances the intact film and the fresh patch by one interval.
+- `fade_history` walks whole cycles up to the last sample time and records thickness, loss and remaining fraction.
+- `pure_diffusion_thickness_m` is the grey dashed line on chart H.
+- `duty_from_params` reads the three depths, the sweep and the two cadences.
+- `FadeResult` is the record those functions return.
+
+`lunar_power/ageing/radiation.py`
+
+- `FADE_DIFFUSIVITY_MULTIPLIER` is 1.
+- `assumption_multipliers` reads the swept 1, 2 and 5.
+- `paper_doses_Mrad` reads the 4 Mrad and 25 Mrad context numbers for the diagram only.
+
+`lunar_power/ageing/feed.py`
+
+- `AgeingState` is the lithium, the grown thickness and the remaining fraction.
+- `state_at` lifts one sample of a `FadeResult` into that state. Moles are recovered from ampere-hours by \(n = Q \times 3600 / F\).
+- `apply_fade` returns a new `Cell`. It raises if the loss would empty the graphite.
+- `aged_state_from_params` is the one-year LEO feed the scenario uses.
+
+`lunar_power/ageing/pybamm_sei.py`
+
+- `_solve_rest` builds an isothermal single-particle model with `"SEI": "solvent-diffusion limited"` and the OKane2022 set, and rests it.
+- `smoke_thickness_m` rests for 10 minutes. CI uses it to prove the option imports and steps.
+- `build_cache` writes rests of 1, 4, 24 and 72 hours at 0 °C and 25 °C to `sei_cache.json`.
+- `load_cache` reads that file. Chart F plots the points. A test checks each point against `storage_loss`.
+
+`lunar_power/scenario.py`
+
+- `Layers` and `parse_layers` turn a comma-separated list into switches.
+- `FUTURE_LAYERS` is `safety`, `pack`, `variation`, `mission`. Switching one on raises `NotImplementedError`. They are named so the later months have a place to land. They are not empty physics pretending to run.
+- `run_scenario` runs ageing first, then a 25 °C and a 0 °C discharge of the cell that produced, then the keep-warm night with the stored energy scaled by the remaining fraction.
+- `fresh_discharge_energy_Wh` forces ageing off. The regression test uses it.
+
+`lunar_power/charts/december.py` is `figure_e`, `figure_f`, `figure_g`, `figure_h` and `generate`. `lunar_power/run.py` is the command. `Cell.ohmic_resistance` is the November sum plus the film term described above.
+
+### How to read the December charts
+
+**E — 7 December. Sixteen cycles a day.** The left bar is one orbit: 55 minutes of charge, 35 minutes of discharge, with the current this 5 Ah cell would need to move 40% of its nameplate in each window. The right-hand panel counts cycles against Earth years. The orange line is 16 a day. The blue line is one a day. The green line is one a lunar day, and it barely leaves the axis. The dashed line is NASA's 30,000 cycle goal. The dotted line is the "over 12,000" status in the 2008 paper. Takeaway: a low-Earth-orbit battery lives a whole automotive life every few months, because the orbit is short, not because the cell is asked for a deep cycle.
+
+**F — 14 December. The invisible skin.** Left: film thickness in nanometres against days on the shelf, at 25 °C and at 0 °C. The markers are PyBaMM rests using the same equation. Right: thickness squared, which is a straight line. The title states the milliampere-hours consumed in 120 days at 25 °C. Takeaway: the film protects the graphite by growing, and the growth slows itself; cold slows it further, by the same Arrhenius factor as the November kinetics.
+
+**G — 21 December. Radiation.** Two boxes. The left box is what the rate actually integrates: heat, time, depth of discharge. The right box is radiation, with the 2004 paper's doses and its own caveat about the missing control. Under the boxes, the diffusivity multipliers are written out and labelled as not applied. Takeaway: radiation is a real extra stress for a spacecraft and not for an EV, and this model draws it instead of inventing a fade law.
+
+**H — 28 December. Three depths, and Opportunity's clock.** Solid lines are 20%, 40% and 60% depth, all at 16 cycles a day. The shade is the crack-fraction sweep on the 40% line. The grey dashed line is the film with no cracking, the same for every depth. The orange dotted line is 60% depth at one cycle a sol. The vertical marks are the 90 sol design life and sol 5111. Takeaway: under this assumption a deeper cycle rebuilds more film, and a rover's once-a-sol clock does not pile that damage up the way an orbit does. The line that reaches zero has spent the nameplate. The shade says how far that conclusion moves when the crack fraction moves.
+
+### Validation
+
+- 1440 / 90 = 16 exactly. 55 + 35 = 90. 30,000 / 16 = 1,875 days.
+- The closed-form thickness matches a numerical cycle history with the crack fraction set to zero.
+- Against the cached PyBaMM rests, thickness agrees to better than 0.1% relative (the largest gap in the cache is a few parts in 10,000). Capacity loss, which is the small difference \(L - L_0\), agrees to within about 1%. The test allows 0.2% on thickness and 2% on ampere-hours.
+- A fresh cell's ohmic resistance and graphite concentration match the November cell. An aged cell has a higher resistance and returns less charge and less energy on the same discharge function.
+- The November anchors are unchanged: 17.30 Wh at 25 °C on a 1-hour discharge, about 125 mAh plated at −20 °C on a 2-hour charge, and the heater-energy ends on the equatorial night.
+
+### Limitations
+
+- The film parameters are fitting values from OKane2022, not a measured diffusivity of this cell, and not a space cell.
+- \(z = 1\) follows that parameter set. A two-electron stoichiometry would double the lithium loss. It is not what the cross-check solves.
+- \(f_\text{full}\) and the linear strain map are assumptions. The shaded band is the honest range. A single curve inside it is not a measured life.
+- The fade chart is an inventory count. It does not run the single-particle model for 30,000 cycles, and it does not grow the film inside a cold charge. The feed is one age, applied as a new initial state, and then the November discharge runs.
+- Radiation is not in the rate. The 2004 paper's "marginal decline" had no unirradiated control. No percent from that paper is used.
+- Opportunity's depth is the early-mission 60% end of "60–70% through sol 54". The once-a-sol cadence is an assumption. No mission capacity-retention number is plotted.
+- The 20% and 40% depths are NASA test conditions. The fade at those depths is this model, not a trace digitised from the NASA papers.
+- Reaching zero remaining capacity means the assumed crack term has consumed 5 Ah. It is not a voltage-cutoff prediction and not a statement that an LEO cell dies on that day.
+
+### What to try next
+
+- Replace \(f_\text{full}\) with a cited crack-area measurement, and narrow the band.
+- Run the single-particle model for a few hundred LEO cycles with the film resistance updated each cycle, and see whether the inventory shortcut still holds.
+- Repeat chart H at 0 °C, where the Arrhenius factor slows the film and the November plating limit starts to matter on charge.
+- Read a later LEO status paper that states a completed cycle count past 12,000, and move the dotted line only if the sentence is in the paper.
+- When the safety layer is added, the film resistance should be the same object the thermal-runaway heat already sees. The switch is `safety` on the scenario runner. It raises until that month.
+
+### Questions someone will ask about this layer
+
+**Sixteen cycles a day sounds like a slogan. Where is the 16?** 24 hours is 1440 minutes. The NASA orbit is 90 minutes. 1440 / 90 = 16. The 55 and 35 are the sunlight and eclipse split in the same notes. The 16 is arithmetic.
+
+**Is 30,000 cycles something a battery achieved, or a target?** In the note I used, it is the goal: "5 years of life, or 30,000 cycles." The 2008 status had passed 12,000 cycles without hitting the failure voltage. Chart E draws both, and it does not call 30,000 a completed test.
+
+**Your film model matches PyBaMM. Does that mean the life is right?** It means the square-root equation is the equation PyBaMM integrates on a rest, for this parameter set. The diffusivity is a fitting value. Matching the solver is not a measurement of a cell on orbit.
+
+**Why does depth of discharge do so much on chart H when the film equation does not contain it?** Because of the crack term, and that term is an assumption. Turn \(f_\text{full}\) down to the bottom of the sweep and the three solid lines collapse toward the grey dashed line, which is pure diffusion and has no depth in it. The shade is that statement, drawn.
+
+**You show Opportunity still holding most of its capacity. Did you fit the rover?** No. The dashed line is this LG M50 parameter set, at 60% depth, at one assumed cycle per sol, with the assumed crack fraction. The rover's cells are a different product. The marks at 90 sols and sol 5111 are NASA's dates. There is no mission ampere-hour on the axis.
+
+**Chart H hits zero. Are you saying an LEO cell is dead at 13 years?** I am saying that at 60% depth, 16 cycles a day, and a crack fraction of 0.02, the inventory count reaches 5 Ah. Change the fraction inside the sweep and the zero moves or disappears. It is not a pack that was discharged to its cutoff on that day.
+
+**Why is radiation a picture and not a curve?** Because the public cell result I could read is qualitative, the study says it had no control, and I will not invent a percent loss per Mrad. The multipliers under the picture are labelled as an assumption and are not in the fade.
+
+**Does the cold model actually feel the ageing?** Yes, on the scenario path. `apply_fade` lowers the graphite concentration and adds \(\rho L / A\) to the ohmic resistance, and the night's stored watt-hours are scaled by what remains. Charts A to D are the fresh cell, so the November posts do not move. A test discharges both cells and checks that the aged one returns less.
+
+## December gaps
+
+- The solvent diffusivity \(2.5 \times 10^{-22}\) m²/s and the other film digits are locked to PyBaMM 25.8.0's OKane2022 object. The papers those digits were taken from were not re-read table by table. PyBaMM says they are fitting values.
+- Ploehn's two-electron stoichiometry was not substituted for \(z = 1\).
+- No completed LEO test total above the 2008 paper's "over 12,000" is cited. The 30,000 is the goal.
+- No public cycle-by-cycle capacity for Opportunity is used. A seminar slide that quotes a later depth of discharge and a cycle count was not used, because I did not read it as a paper with a table. The early-mission "typically 60–70% through sol 54" is the depth that is used, and only the 60% end of it.
+- The 2004 radiation paper's abstract is the whole of the quantitative claim: marginal decline, no significant change in the later fade rate, no unirradiated control, doses of about 4 Mrad and up to 25 Mrad. A follow-up paper with control cells was not used for a percent, because that percent was not read out of it.
+- \(f_\text{full}\), the day-to-night ratio, the cycles per sol, the feed age, and the diffusivity multipliers are assumptions. The ranges are in the YAML notes.

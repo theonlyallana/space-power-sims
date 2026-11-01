@@ -14,13 +14,13 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-from cell import Cell, cell_from_params
 from common.constants import FARADAY, STEFAN_BOLTZMANN
 from common.params import Entry, require
 from common.plotting import COLOURS, apply_style, reserve_footer, save_figure
 from common.units import celsius_to_kelvin, watt_hours_to_joules
-from spm import discharged_state, simulate
-from thermal import (
+from lunar_power.electrochemistry.cell import Cell, cell_from_params
+from lunar_power.electrochemistry.spm import discharged_state, simulate
+from lunar_power.thermal.night import (
     ingenuity_specific_energy_Wh_per_kg,
     radiative_conductance_W_per_K,
     simulate_night,
@@ -91,7 +91,7 @@ def figure_a(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     pybamm_rows = []
     if not smoke:
-        from pybamm_check import plated_lithium_Ah
+        from lunar_power.electrochemistry.pybamm_check import plated_lithium_Ah
 
         for rate in rates:
             for temperature_C in temperatures:
@@ -199,7 +199,7 @@ def figure_b(cell: Cell, book: dict[str, Entry], out: Path, smoke: bool) -> dict
 
     pybamm_rows = []
     if not smoke:
-        from pybamm_check import discharge_curve
+        from lunar_power.electrochemistry.pybamm_check import discharge_curve
 
         for temperature_C in temperatures:
             curve = discharge_curve(

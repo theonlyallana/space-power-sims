@@ -6,7 +6,7 @@ from pathlib import Path
 
 from common.params import load_params
 
-PARAMS = Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "params.yaml"
+PARAMS = Path(__file__).resolve().parents[1] / "lunar_power" / "params.yaml"
 
 
 def test_every_input_has_a_source_or_is_an_assumption():
