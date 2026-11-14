@@ -13,11 +13,9 @@ from pathlib import Path
 import pytest
 
 from common.params import load_params
-from make_figures import generate
+from lunar_power.charts.november import generate
 
-BOOK = load_params(
-    Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "params.yaml"
-)
+BOOK = load_params(Path(__file__).resolve().parents[1] / "lunar_power" / "params.yaml")
 
 
 def test_smoke_figures_keep_every_label_on_the_canvas(tmp_path):
@@ -40,7 +38,7 @@ def test_smoke_figures_keep_every_label_on_the_canvas(tmp_path):
 def test_a_title_does_not_claim_plated_lithium_only_grows_as_it_gets_colder():
     """1C plates more at -10 °C than at -20 °C, because the colder charge is cut off."""
     source = (
-        Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "make_figures.py"
+        Path(__file__).resolve().parents[1] / "lunar_power" / "charts" / "november.py"
     ).read_text()
     assert "Colder charging deposits more lithium as metal" not in source
     assert "Below 0 °C, charging starts to plate lithium" in source

@@ -9,15 +9,13 @@ from pathlib import Path
 
 import pytest
 
-from cell import cell_from_params
 from common.params import load_params
 from common.units import celsius_to_kelvin
-from pybamm_check import plated_lithium_Ah, smoke_solve
-from spm import discharged_state
+from lunar_power.electrochemistry.cell import cell_from_params
+from lunar_power.electrochemistry.pybamm_check import plated_lithium_Ah, smoke_solve
+from lunar_power.electrochemistry.spm import discharged_state
 
-BOOK = load_params(
-    Path(__file__).resolve().parents[1] / "01-lunar-night-battery" / "params.yaml"
-)
+BOOK = load_params(Path(__file__).resolve().parents[1] / "lunar_power" / "params.yaml")
 
 
 def test_smoke_solve_returns_a_sensible_voltage():

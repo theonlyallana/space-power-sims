@@ -1,8 +1,9 @@
-# Inputs for the November lunar-night study.
+# Inputs for the lunar power model.
 #
-# Every entry has a source URL or the word ASSUMPTION. An assumption's note
-# says what range was swept. CODATA constants live in common/constants.py,
-# not here, because they are not scenario choices.
+# November (cold electrochemistry and the night) and December (ageing) share
+# this file. Every entry has a source URL or the word ASSUMPTION. An
+# assumption's note says what range was swept. CODATA constants live in
+# common/constants.py, not here, because they are not scenario choices.
 #
 # Cell scalars are the published LG M50 parameter set as shipped in PyBaMM
 # 25.8.0 (OKane2022, built on Chen2020). A test checks our copies against that
@@ -481,3 +482,205 @@ parameters:
     unit: C
     source: "https://www.nasa.gov/wp-content/uploads/2024/01/battery-system-design-testing-and-operation-for-the-mars-perseverance-rover-and-ingenuity-helicopter.pdf"
     note: "Upper end of the Perseverance charge and discharge window in the same presentation."
+
+  # --- December: orbit clock ---
+
+  leo_orbit_period_min:
+    value: 90.0
+    unit: min
+    source: "https://ntrs.nasa.gov/citations/20050192209"
+    note: "NASA Glenn: an LEO orbit is approximately 90 min. The same paragraph splits it into 55 min of charge and 35 min of discharge. The 2008 status paper uses the same 90 min period: https://ntrs.nasa.gov/citations/20080008855"
+
+  leo_sunlight_charge_min:
+    value: 55.0
+    unit: min
+    source: "https://ntrs.nasa.gov/citations/20050192209"
+    note: "Charge while the spacecraft is in sunlight. The 2008 paper charges for that same 55 min, constant current then a taper: https://ntrs.nasa.gov/citations/20080008855"
+
+  leo_eclipse_discharge_min:
+    value: 35.0
+    unit: min
+    source: "https://ntrs.nasa.gov/citations/20050192209"
+    note: "Discharge during the eclipse portion of the same approximately 90 min orbit."
+
+  leo_depth_of_discharge:
+    value: 0.40
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20080008855"
+    note: "40 percent depth of discharge. The 2008 paper calls this the outer envelope they chose for LEO lithium-ion testing. Their batteries were about 25 Ah; the fraction is what is reused here, not their ampere-hours."
+
+  leo_cycle_goal:
+    value: 30000.0
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20050192209"
+    note: "NASA's stated goal for that LEO test: demonstrate 5 years of life, or 30,000 cycles. 30,000 divided by 16 cycles a day is 1,875 days, which is a bit over five calendar years. The paper treats the two as the same goal."
+
+  leo_cycles_reported:
+    value: 12000.0
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20080008855"
+    note: "By the 2008 paper each battery had accumulated over 12,000 cycles and was still above the failure voltage. The chart marks 12,000. It does not mark a higher completed total the paper does not give."
+
+  nonpolar_day_to_night_ratio:
+    value: 1.0
+    unit: "1"
+    source: ASSUMPTION
+    note: "Swept from 0.8 to 1.2. The drawn lunar-day cadence uses 1, so the sunlit hours equal the 354 hour night already in this file. That doubling is not a second measurement. Polar nights are a different length."
+
+  mars_sol_hours:
+    value: 24.0
+    unit: h
+    source: "https://www.giss.nasa.gov/tools/mars24/help/notes.html"
+    note: "NASA GISS Mars24: a mean Mars solar day is 24 hours 39 minutes 35.244 seconds. The three parts are split so the code adds them."
+
+  mars_sol_minutes:
+    value: 39.0
+    unit: min
+    source: "https://www.giss.nasa.gov/tools/mars24/help/notes.html"
+    note: "Minutes part of the same mean sol."
+
+  mars_sol_seconds:
+    value: 35.244
+    unit: s
+    source: "https://www.giss.nasa.gov/tools/mars24/help/notes.html"
+    note: "Seconds part of the same mean sol, including the 0.244 s."
+
+  # --- December: the surface film (PyBaMM OKane2022 fitting values) ---
+
+  sei_initial_thickness_m:
+    value: 5.0e-9
+    unit: m
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "Initial SEI thickness in the OKane2022 parameter set shipped with PyBaMM 25.8.0. PyBaMM's file says these degradation values were used to fit models and are not claimed as the true values of a particular cell. https://github.com/pybamm-team/PyBaMM/blob/v25.8.0/src/pybamm/input/parameters/lithium_ion/OKane2022.py"
+
+  sei_solvent_diffusivity_m2_s:
+    value: 2.5e-22
+    unit: m2/s
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "SEI solvent diffusivity in that same parameter set. O'Kane et al. identify this as the parameter that sets diffusion-limited film growth. The original table behind the digit was not re-read; a test locks it to the installed PyBaMM object."
+
+  sei_bulk_solvent_concentration_mol_m3:
+    value: 2636.0
+    unit: mol/m3
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "Bulk solvent concentration used by PyBaMM's solvent-diffusion-limited SEI option (phase parameter c_sol)."
+
+  sei_partial_molar_volume_m3_mol:
+    value: 9.585e-5
+    unit: m3/mol
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "SEI partial molar volume in the OKane2022 set. Converts a lithium flux into a thickness."
+
+  sei_lithium_per_mole:
+    value: 1.0
+    unit: "1"
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "PyBaMM name: Ratio of lithium moles to SEI moles. It is 1 in this set. Ploehn, Ramadass and White describe a two-electron reduction; this file does not replace the 1 with a 2, because the cross-check would then be a different equation. https://doi.org/10.1149/1.1644601"
+
+  sei_resistivity_ohm_m:
+    value: 200000.0
+    unit: ohm m
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "SEI resistivity in the OKane2022 set. Film resistance added to the cold model is this times the grown thickness, divided by the graphite surface area."
+
+  sei_growth_activation_energy_J_mol:
+    value: 38000.0
+    unit: J/mol
+    source: "https://doi.org/10.1039/D2CP00417H"
+    note: "SEI growth activation energy in the OKane2022 set. The Arrhenius factor multiplies solvent diffusivity. Checked against PyBaMM's parameter object, not re-derived from a separate table."
+
+  # --- December: depth of discharge and cracking ---
+
+  fade_dod_shallow:
+    value: 0.20
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20050185205"
+    note: "20% is one of the depths in NASA's LEO verification matrix (20, 30, 35 and 40%). Used as the shallow curve. The fade on that curve is this model, not a digitised result from that test."
+
+  fade_dod_leo:
+    value: 0.40
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20080008855"
+    note: "The 40% LEO depth, repeated so the fade chart and the orbit chart name the same fraction."
+
+  fade_dod_rover_early:
+    value: 0.60
+    unit: "1"
+    source: "https://ntrs.nasa.gov/citations/20080015793"
+    note: "The 2004 MER battery workshop slides say depth of discharge is typically 60-70% through sol 54. 60% is the lower end of that stated range, not an average invented between the two ends. It is early-mission telemetry, not a measured depth for all 5,111 sols."
+
+  graphite_full_lithiation_volume_change:
+    value: 0.132
+    unit: "1"
+    source: "https://doi.org/10.1021/acs.jpcc.8b01873"
+    note: "Schweidler et al., J. Phys. Chem. C (2018): total graphite volume expansion of 13.2% from C6 to LiC6. Crystal volume, not the thickness change of this cell's electrode."
+
+  crack_area_fraction_at_full_expansion:
+    value: 0.02
+    unit: "1"
+    source: ASSUMPTION
+    note: "Fraction of the graphite surface that grows a new skin each cycle at full lithiation. Swept from 0.002 to 0.05. The drawn curves use 0.02, inside that sweep. Not a measured crack area. The low end of the sweep is where cracking barely adds to diffusion-limited growth."
+
+  crack_area_fraction_sweep_low:
+    value: 0.002
+    unit: "1"
+    source: ASSUMPTION
+    note: "Lower end of the crack-fraction sweep. Swept from 0.002 to 0.05. The band on the 40% fade curve runs from this value to the upper end."
+
+  crack_area_fraction_sweep_high:
+    value: 0.05
+    unit: "1"
+    source: ASSUMPTION
+    note: "Upper end of the same sweep. Swept from 0.002 to 0.05."
+
+  rover_cycles_per_sol:
+    value: 1.0
+    unit: 1/sol
+    source: ASSUMPTION
+    note: "Swept from 0.5 to 1.5 cycles per sol. The dashed curve uses 1. The 2004 workshop slides show a charge and a discharge against sol number through sol 54, which is the early-mission pattern this 1 is taken from. It is not a counted total over 5,111 sols."
+
+  feed_age_years:
+    value: 1.0
+    unit: yr
+    source: ASSUMPTION
+    note: "Age at which the ageing layer updates the cold model's inventory and resistance. Swept from 0.25 to 5 years. The duty is the 40% LEO cycle at 16 cycles a day. Zero would leave the November cell unchanged; 1 year is inside the sweep."
+
+  # --- December: radiation, label only ---
+
+  radiation_diffusivity_multipliers:
+    value: [1.0, 2.0, 5.0]
+    unit: "1"
+    source: ASSUMPTION
+    note: "Swept across 1, 2 and 5. If radiation were forced into the model as a multiplier on solvent diffusivity, these are the factors that were tried. They are drawn on the concept chart and are not applied to the fade curves or to the cold-model feed."
+
+  radiation_paper_upper_dose_Mrad:
+    value: 25.0
+    unit: Mrad
+    source: "https://doi.org/10.1149/1.1666128"
+    note: "Ratnakumar et al., J. Electrochem. Soc. 151 (2004) A652. Cumulative dose the cells were taken to. The abstract says only a marginal capacity decline, and that the study had no unirradiated control. Not an input to the fade rate."
+
+  radiation_paper_mission_dose_Mrad:
+    value: 4.0
+    unit: Mrad
+    source: "https://doi.org/10.1149/1.1666128"
+    note: "The same abstract's 'about 4 Mrad' of gamma radiation for missions to Jupiter and its moons. Context on the concept chart only."
+
+  # --- December: Opportunity, the case, not a fitted cell ---
+
+  opportunity_design_life_sols:
+    value: 90.0
+    unit: sol
+    source: "https://www.nasa.gov/news-release/nasas-record-setting-opportunity-rover-mission-on-mars-comes-to-end/"
+    note: "NASA: designed to last just 90 Martian days. The same release says the rover exceeded that life by 60 times and that the mission was almost 15 years. 60 times 90 sols is 5,400 sols, which is not the sol number of the last contact. Both wordings are NASA's. The chart marks 90 sols and sol 5111, not 5,400."
+
+  opportunity_last_contact_sol:
+    value: 5111.0
+    unit: sol
+    source: "https://ntrs.nasa.gov/citations/20200000214"
+    note: "Opportunity end-of-mission report: last communication on sol 5111 (10 June 2018), after more than fourteen years. The NASA release of 13 February 2019 says almost 15 years."
+
+  opportunity_life_multiple:
+    value: 60.0
+    unit: "1"
+    source: "https://www.nasa.gov/news-release/nasas-record-setting-opportunity-rover-mission-on-mars-comes-to-end/"
+    note: "NASA: exceeding its life expectancy by 60 times. Quoted beside the 90 sol design life. Not used as a cycle count."

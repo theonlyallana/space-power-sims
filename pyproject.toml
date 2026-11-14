@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "space-power-sims"
-version = "2026.11.0"
+version = "2026.12.0"
 description = "Public-data simulations of batteries and power systems for space."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -31,7 +31,7 @@ dev = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["common*"]
+include = ["common*", "lunar_power*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

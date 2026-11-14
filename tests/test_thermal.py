@@ -10,7 +10,7 @@ from pathlib import Path
 
 from common.params import load_params
 from common.units import celsius_to_kelvin, watt_hours_to_joules
-from thermal import (
+from lunar_power.thermal.night import (
     conservation_residual_J,
     ingenuity_specific_energy_Wh_per_kg,
     radiative_conductance_W_per_K,
@@ -20,7 +20,7 @@ from thermal import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-BOOK = load_params(ROOT / "01-lunar-night-battery" / "params.yaml")
+BOOK = load_params(ROOT / "lunar_power" / "params.yaml")
 
 
 def _night(strategy: str, conductance: float, mass_kg: float = 3.0, radioisotope_W: float = 0.0):

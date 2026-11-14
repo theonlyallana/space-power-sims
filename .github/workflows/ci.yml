@@ -22,8 +22,8 @@ jobs:
         env:
           PYBAMM_DISABLE_TELEMETRY: "1"
         run: pytest
-      - name: Smoke-run the November scripts
+      - name: Smoke-run the model
         env:
           PYBAMM_DISABLE_TELEMETRY: "1"
           SPACE_POWER_SIMS_MODE: smoke
-        run: python 01-lunar-night-battery/run_all.py --smoke
+        run: python -m lunar_power.run --smoke
